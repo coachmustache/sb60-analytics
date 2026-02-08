@@ -7,333 +7,846 @@
 
   <style>
     :root{
-      --bg:#0b0f19;
-      --ink:#e5e7eb;
-      --muted:#94a3b8;
-      --line:rgba(148,163,184,.18);
-      --cardTop:rgba(255,255,255,.05);
-      --shadow:0 18px 44px rgba(0,0,0,.5),0 6px 18px rgba(0,0,0,.35);
+      --bg: #0b0f19;
+      --ink: #e5e7eb;
+      --muted: #94a3b8;
+      --line: rgba(148,163,184,0.18);
+      --cardTop: rgba(255,255,255,0.05);
+      --shadow: 0 18px 44px rgba(0,0,0,0.50), 0 6px 18px rgba(0,0,0,0.35);
 
       --accent:#22c55e;
-      --goodBg:rgba(34,197,94,.16);
+
+      --goodBg: rgba(34,197,94,0.16);
       --goodInk:#86efac;
-      --warnBg:rgba(249,115,22,.14);
-      --warnInk:#fdba74;
+
+      --badBg:  rgba(239,68,68,0.16);
+      --badInk: #fca5a5;
+
+      --tbBg: rgba(99,102,241,0.18);
+      --tbInk:#c7d2fe;
+
+      --warnBg: rgba(249,115,22,0.14);
+      --warnInk: #fdba74;
+
+      --focusGlow: 0 0 0 4px rgba(34,197,94,0.18);
     }
 
-    html,body{
-      margin:0;
+    html, body{
+      margin:0; padding:0;
       background:
-        radial-gradient(1200px 800px at 15% 0%, rgba(34,197,94,.10), transparent 55%),
-        radial-gradient(900px 700px at 85% 0%, rgba(99,102,241,.12), transparent 55%),
+        radial-gradient(1200px 800px at 15% 0%, rgba(34,197,94,0.10), transparent 55%),
+        radial-gradient(900px 700px at 85% 0%, rgba(99,102,241,0.12), transparent 55%),
         var(--bg);
-      font-family:Arial,sans-serif;
-      color:var(--ink);
+      font-family: Arial, sans-serif;
+      color: var(--ink);
     }
 
-    .wrap{max-width:1200px;margin:0 auto;padding:16px;}
+    .wrap{ max-width: 1200px; margin: 0 auto; padding: 16px; }
 
-    .header{display:flex;justify-content:space-between;margin-bottom:12px;}
-    .title{font-size:22px;font-weight:900;}
-    .meta{font-size:12px;color:var(--muted);text-align:right;}
+    .header{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom: 12px;
+    }
+    .title{ font-size: 22px; font-weight: 900; letter-spacing: .4px; }
+    .meta{ text-align:right; font-size: 12px; color: var(--muted); line-height: 1.25; }
 
     .card{
-      background:linear-gradient(180deg,var(--cardTop),rgba(255,255,255,.02));
-      border:1px solid var(--line);
-      border-radius:16px;
-      box-shadow:var(--shadow);
-      overflow:hidden;
+      background: linear-gradient(180deg, var(--cardTop), rgba(255,255,255,0.02));
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(8px);
     }
 
     .toolbar{
       display:flex;
       gap:10px;
       align-items:center;
-      padding:12px;
-      border-bottom:1px solid var(--line);
+      justify-content:space-between;
+      padding: 12px 12px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      flex-wrap: wrap;
     }
 
     .pill{
       display:inline-flex;
       align-items:center;
       gap:8px;
-      padding:8px 12px;
-      border-radius:999px;
-      background:rgba(148,163,184,.1);
-      border:1px solid rgba(148,163,184,.18);
-      font-size:13px;
-      color:var(--muted);
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(148,163,184,0.10);
+      border: 1px solid rgba(148,163,184,0.18);
+      font-size: 13px;
+      color: var(--muted);
+      white-space: nowrap;
     }
-
     .dot{
-      width:10px;height:10px;border-radius:999px;
-      background:var(--accent);
-      box-shadow:0 0 0 4px rgba(34,197,94,.18);
+      width:10px; height:10px; border-radius:999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(34,197,94,0.18);
     }
 
-    input[type=search]{
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px solid rgba(148,163,184,.22);
-      background:#0f172a;
-      color:var(--ink);
+    .controls{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-left:auto;
     }
 
-    .content{padding:14px;}
+    input[type="search"]{
+      width:min(420px, 100%);
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,0.22);
+      outline: none;
+      font-size: 14px;
+      color: var(--ink);
+      background: rgba(15,23,42,0.85);
+    }
+    input[type="search"]::placeholder{ color: rgba(148,163,184,0.75); }
+    input[type="search"]:focus{
+      border-color: rgba(34,197,94,0.55);
+      box-shadow: var(--focusGlow);
+    }
+
+    .content{ padding: 14px; }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .stat{
+      grid-column: span 6;
+      background: rgba(15,23,42,0.55);
+      border: 1px solid rgba(148,163,184,0.18);
+      border-radius: 14px;
+      padding: 12px;
+    }
+    @media (max-width: 900px){
+      .stat{ grid-column: span 12; }
+    }
+
+    .stat .k{ color: var(--muted); font-size: 12px; }
+    .stat .v{ font-size: 18px; font-weight: 900; margin-top: 4px; }
+    .stat .s{ color: var(--muted); font-size: 12px; margin-top: 6px; line-height: 1.35; }
 
     .section-title{
-      margin:16px 0 8px;
-      font-weight:900;
-      font-size:14px;
-      color:var(--muted);
-      text-transform:uppercase;
+      margin: 16px 0 8px;
+      font-weight: 900;
+      font-size: 14px;
+      color: var(--muted);
+      letter-spacing: .4px;
+      text-transform: uppercase;
     }
 
     .qgrid{
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
-      gap:12px;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 12px;
     }
 
     .qcard{
-      background:rgba(15,23,42,.55);
-      border:1px solid rgba(148,163,184,.18);
-      border-radius:14px;
-      overflow:hidden;
+      border: 1px solid rgba(148,163,184,0.18);
+      background: rgba(15,23,42,0.55);
+      border-radius: 14px;
+      overflow: hidden;
     }
 
     .qhead{
       display:flex;
       justify-content:space-between;
-      gap:10px;
-      padding:12px;
-      border-bottom:1px solid rgba(148,163,184,.14);
+      align-items:flex-start;
+      gap: 10px;
+      padding: 12px;
+      border-bottom: 1px solid rgba(148,163,184,0.14);
+      cursor: default;
+      user-select:none;
     }
 
-    .qtitle{font-weight:900;}
-
-    .qmeta{display:flex;gap:8px;flex-wrap:wrap;}
+    .qtitle{ font-weight: 900; line-height: 1.25; }
+    .qmeta{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      text-align:right;
+    }
 
     .tag{
-      padding:6px 10px;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.18);
-      background:rgba(148,163,184,.08);
-      font-size:12px;
-      color:var(--muted);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.18);
+      background: rgba(148,163,184,0.08);
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
     }
-    .tag.good{background:var(--goodBg);color:var(--goodInk);}
-    .tag.warn{background:var(--warnBg);color:var(--warnInk);}
+    .tag.good{ background: var(--goodBg); color: var(--goodInk); border-color: rgba(34,197,94,0.28); }
+    .tag.warn{ background: var(--warnBg); color: var(--warnInk); border-color: rgba(249,115,22,0.38); }
+    .tag.tb{ background: var(--tbBg); color: var(--tbInk); border-color: rgba(99,102,241,0.45); }
 
-    .qbody{padding:12px;}
+    /* ✅ always visible (no collapsing) */
+    .qbody{ padding: 12px; display:block; }
 
-    .viz{display:flex;gap:12px;}
+    .viz{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+    }
 
     .pieWrap{
-      width:140px;
-      height:140px;
+      width: 140px;
+      min-width: 140px;
+      height: 140px;
+      border-radius: 14px;
+      background: rgba(148,163,184,0.06);
+      border: 1px solid rgba(148,163,184,0.14);
       display:flex;
       align-items:center;
       justify-content:center;
-      border-radius:14px;
-      background:rgba(148,163,184,.06);
-      border:1px solid rgba(148,163,184,.14);
+      overflow:hidden;
     }
 
-    canvas.pie{width:132px;height:132px;}
+    canvas.pie{
+      width: 132px;
+      height: 132px;
+      display:block;
+    }
 
-    .legend{display:flex;flex-direction:column;gap:8px;flex:1;}
+    .legend{
+      flex: 1;
+      min-width: 0;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
 
     .legRow{
       display:flex;
       gap:10px;
       align-items:flex-start;
-      border-bottom:1px solid rgba(148,163,184,.1);
-      padding-bottom:6px;
+      border-bottom: 1px solid rgba(148,163,184,0.10);
+      padding-bottom: 8px;
     }
+    .legRow:last-child{ border-bottom:none; padding-bottom: 0; }
 
     .swatch{
-      width:10px;height:10px;border-radius:3px;
-      border:1px solid rgba(148,163,184,.3);
-      margin-top:4px;
+      width: 10px; height: 10px; border-radius: 3px;
+      border: 1px solid rgba(148,163,184,0.30);
+      flex: 0 0 auto;
+      margin-top: 4px;
     }
 
+    /* ✅ full text (wrap, no ellipsis) */
     .ans{
-      font-weight:800;
-      white-space:normal;
-      overflow-wrap:anywhere;
+      flex: 1 1 auto;
+      min-width: 0;
+      font-weight: 800;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      line-height: 1.2;
     }
 
     .pct{
-      font-size:12px;
-      color:var(--muted);
-      white-space:nowrap;
+      flex: 0 0 auto;
+      font-variant-numeric: tabular-nums;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      align-self:flex-start;
     }
 
-    .hint{font-size:12px;color:var(--muted);margin-top:8px;}
+    .hint{
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .footer{
+      padding: 10px 12px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      display:flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    }
   </style>
 </head>
 
 <body>
-<div class="wrap">
-  <div class="header">
-    <div class="title">SB60 Analytics</div>
-    <div class="meta">
-      <div id="updated">Updated: —</div>
-      <div id="status">Loading…</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="toolbar">
-      <div class="pill"><span class="dot"></span>Auto-updates every 30s</div>
-      <div class="pill" id="graded-pill">Graded: —</div>
-      <input id="q" type="search" placeholder="Filter questions…" />
-    </div>
-
-    <div class="content">
-      <div class="section-title">Question breakdown</div>
-      <div class="qgrid" id="questions"></div>
-    </div>
-  </div>
-</div>
-
-<script>
-const SHEET_CSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQvxWm5EeVD-akvWoB9ArtroL8J1nh8USmTiPdepmbp8JNS3HfQvKtOfSEcgumT4mccp95PJBJBlfix/pub?gid=1947708892&single=true&output=csv";
-
-const PICKS_START_COL = 1;
-const PICKS_END_COL = 15;
-const RESULTS_ROW_NUMBER = 7;
-const REFRESH_MS = 30000;
-
-const PIE_COLORS = [
-  "rgba(34,197,94,.55)",
-  "rgba(99,102,241,.55)",
-  "rgba(249,115,22,.55)",
-  "rgba(239,68,68,.55)",
-  "rgba(14,165,233,.55)",
-  "rgba(168,85,247,.55)",
-  "rgba(251,191,36,.55)"
-];
-
-const clean = v => String(v ?? "").trim();
-const fmtPct = x => (x*100).toFixed(x*100>=10?0:1)+"%";
-
-function setupCanvas(c){
-  const dpr=window.devicePixelRatio||1;
-  c.width=132*dpr;c.height=132*dpr;
-  const ctx=c.getContext("2d");
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  return ctx;
-}
-
-function drawPie(canvas,slices){
-  const ctx=setupCanvas(canvas);
-  const cx=66,cy=66,r=58;
-  let a=-Math.PI/2;
-  slices.forEach(s=>{
-    ctx.beginPath();
-    ctx.moveTo(cx,cy);
-    ctx.arc(cx,cy,r,a,a+Math.PI*2*s.pct);
-    ctx.fillStyle=s.color;
-    ctx.fill();
-    a+=Math.PI*2*s.pct;
-  });
-  ctx.beginPath();
-  ctx.arc(cx,cy,r*0.55,0,Math.PI*2);
-  ctx.fillStyle="#0b0f19";
-  ctx.fill();
-}
-
-function parseCSV(t){
-  return t.trim().split("\n").map(r=>r.split(","));
-}
-
-async function refresh(){
-  const res=await fetch(SHEET_CSV_URL,{cache:"no-store"});
-  const rows=parseCSV(await res.text());
-  const headers=rows[0];
-  const data=rows.slice(RESULTS_ROW_NUMBER);
-
-  const el=document.getElementById("questions");
-  el.innerHTML="";
-
-  for(let c=PICKS_START_COL;c<=PICKS_END_COL;c++){
-    const freq=new Map();
-    let denom=0;
-
-    data.forEach(r=>{
-      const v=clean(r[c]);
-      if(!v) return;
-      denom++;
-      freq.set(v,(freq.get(v)||0)+1);
-    });
-
-    const dist=[...freq.entries()]
-      .map(([k,v])=>({label:k,count:v,pct:v/denom}))
-      .sort((a,b)=>b.pct-a.pct);
-
-    const card=document.createElement("div");
-    card.className="qcard";
-
-    const head=document.createElement("div");
-    head.className="qhead";
-    head.innerHTML=`
-      <div class="qtitle">${headers[c]}</div>
-      <div class="qmeta">
-        <span class="tag">Responses: ${denom}</span>
-        <span class="tag warn">Result: pending</span>
+  <div class="wrap">
+    <div class="header">
+      <div>
+        <div class="title">SB60 Analytics</div>
       </div>
-    `;
+      <div class="meta">
+        <div id="updated">Updated: —</div>
+        <div id="status">Loading…</div>
+      </div>
+    </div>
 
-    const body=document.createElement("div");
-    body.className="qbody";
+    <div class="card">
+      <div class="toolbar">
+        <div class="pill"><span class="dot"></span><span>Auto-updates every 30s</span></div>
+        <div class="pill" id="graded-pill">Graded: — / 15</div>
+        <div class="controls">
+          <input id="q" type="search" placeholder="Filter questions…" />
+        </div>
+      </div>
 
-    const viz=document.createElement("div");
-    viz.className="viz";
+      <div class="content">
+        <!-- ✅ TOP STATS GRID (kept) -->
+        <div class="grid">
+          <div class="stat">
+            <div class="k">Entries Received</div>
+            <div class="v" id="entries">—</div>
+            <div class="s">Total submissions currently in the sheet.</div>
+          </div>
 
-    const pieWrap=document.createElement("div");
-    pieWrap.className="pieWrap";
-    const canvas=document.createElement("canvas");
-    canvas.className="pie";
-    pieWrap.appendChild(canvas);
+          <div class="stat">
+            <div class="k">Most unique entry</div>
+            <div class="v" id="uniqueEntry">—</div>
+            <div class="s" id="uniqueNote">Uniqueness score: Σ(1 / pick-frequency).</div>
+          </div>
 
-    drawPie(canvas,dist.map((d,i)=>({
-      pct:d.pct,
-      color:PIE_COLORS[i%PIE_COLORS.length]
-    })));
+          <div class="stat">
+            <div class="k">Chalkiest player</div>
+            <div class="v" id="chalkPlayer">—</div>
+            <div class="s" id="chalkNote">Highest average pick popularity (count/denom).</div>
+          </div>
 
-    const legend=document.createElement("div");
-    legend.className="legend";
+          <div class="stat">
+            <div class="k">Contrarian player</div>
+            <div class="v" id="contraPlayer">—</div>
+            <div class="s" id="contraNote">Lowest average pick popularity (count/denom).</div>
+          </div>
 
-    dist.forEach(d=>{
-      const r=document.createElement("div");
-      r.className="legRow";
-      r.innerHTML=`
-        <div class="swatch" style="background:${PIE_COLORS[0]}"></div>
-        <div class="ans">${d.label}</div>
-        <div class="pct">${fmtPct(d.pct)} • ${d.count}/${denom}</div>
-      `;
-      legend.appendChild(r);
+          <div class="stat">
+            <div class="k">Chalkiest answer (any question)</div>
+            <div class="v" id="hiPct">—</div>
+            <div class="s" id="hiPctNote">Most common pick anywhere (non-blank).</div>
+          </div>
+
+          <div class="stat">
+            <div class="k">Rarest pick of the night</div>
+            <div class="v" id="rarestPick">—</div>
+            <div class="s" id="rarestPickNote">Lowest non-zero % pick anywhere + who chose it.</div>
+          </div>
+
+          <div class="stat" style="grid-column: span 12;">
+            <div class="k">Most polarizing question</div>
+            <div class="v" id="polarQ">—</div>
+            <div class="s" id="polarNote">Most evenly spread distribution (highest entropy).</div>
+          </div>
+        </div>
+
+        <div class="section-title">Question breakdown</div>
+        <div class="qgrid" id="questions"></div>
+      </div>
+
+      <div class="footer">
+        <div>Percentages based on non-blank picks for that question.</div>
+        <div>Tip: “Graded” does not include tiebreak.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.addEventListener("error", (e) => {
+      const el = document.getElementById("status");
+      if (el) el.textContent = "JS Error: " + (e.message || "Unknown");
+    });
+    window.addEventListener("unhandledrejection", (e) => {
+      const el = document.getElementById("status");
+      if (el) el.textContent = "Promise Error: " + (e.reason?.message || String(e.reason || "Unknown"));
     });
 
-    viz.appendChild(pieWrap);
-    viz.appendChild(legend);
-    body.appendChild(viz);
+    const SHEET_CSV_URL =
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vQvxWm5EeVD-akvWoB9ArtroL8J1nh8USmTiPdepmbp8JNS3HfQvKtOfSEcgumT4mccp95PJBJBlfix/pub?gid=1947708892&single=true&output=csv";
 
-    card.appendChild(head);
-    card.appendChild(body);
-    el.appendChild(card);
-  }
+    const RESULTS_ROW_NUMBER = 7;
 
-  document.getElementById("updated").textContent =
-    "Updated: "+new Date().toLocaleTimeString();
-  document.getElementById("status").textContent="Live";
-}
+    const NAME_COL = 0;            // A
+    const PICKS_START_COL = 1;     // B
+    const PICKS_END_COL = 15;      // P
+    const REFRESH_MS = 30000;
 
-refresh();
-setInterval(refresh,REFRESH_MS);
-</script>
+    const elUpdated = document.getElementById("updated");
+    const elStatus  = document.getElementById("status");
+    const elGraded  = document.getElementById("graded-pill");
+    const elQ       = document.getElementById("q");
+
+    const elEntries = document.getElementById("entries");
+    const elUnique  = document.getElementById("uniqueEntry");
+    const elUniqueNote = document.getElementById("uniqueNote");
+
+    const elChalk = document.getElementById("chalkPlayer");
+    const elChalkNote = document.getElementById("chalkNote");
+    const elContra = document.getElementById("contraPlayer");
+    const elContraNote = document.getElementById("contraNote");
+
+    const elHiPct = document.getElementById("hiPct");
+    const elHiPctNote = document.getElementById("hiPctNote");
+
+    const elRarest = document.getElementById("rarestPick");
+    const elRarestNote = document.getElementById("rarestPickNote");
+
+    const elPolarQ = document.getElementById("polarQ");
+    const elPolarNote = document.getElementById("polarNote");
+
+    const elQuestions = document.getElementById("questions");
+
+    let cachedRows = [];
+
+    function parseCSV(text) {
+      const rows = [];
+      let row = [];
+      let cur = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        const next = text[i + 1];
+
+        if (ch === '"' && inQuotes && next === '"') { cur += '"'; i++; continue; }
+        if (ch === '"') { inQuotes = !inQuotes; continue; }
+
+        if (ch === "," && !inQuotes) { row.push(cur); cur = ""; continue; }
+        if ((ch === "\n" || ch === "\r") && !inQuotes) {
+          if (ch === "\r" && next === "\n") i++;
+          row.push(cur);
+          if (row.some(cell => String(cell).trim() !== "")) rows.push(row);
+          row = [];
+          cur = "";
+          continue;
+        }
+        cur += ch;
+      }
+      row.push(cur);
+      if (row.some(cell => String(cell).trim() !== "")) rows.push(row);
+
+      const maxLen = Math.max(0, ...rows.map(r => r.length));
+      return rows.map(r => r.concat(Array(Math.max(0, maxLen - r.length)).fill("")));
+    }
+
+    const clean = v => String(v ?? "").trim();
+
+    function fmtPct(x){
+      return (x * 100).toFixed(x*100 >= 10 ? 0 : 1) + "%";
+    }
+
+    const PIE_COLORS = [
+      "rgba(34,197,94,0.55)",
+      "rgba(99,102,241,0.55)",
+      "rgba(249,115,22,0.55)",
+      "rgba(239,68,68,0.55)",
+      "rgba(14,165,233,0.55)",
+      "rgba(168,85,247,0.55)",
+      "rgba(251,191,36,0.55)",
+      "rgba(148,163,184,0.45)"
+    ];
+
+    function setupCanvas(canvas, cssSize = 132){
+      const dpr = window.devicePixelRatio || 1;
+      canvas.style.width = cssSize + "px";
+      canvas.style.height = cssSize + "px";
+      canvas.width = Math.round(cssSize * dpr);
+      canvas.height = Math.round(cssSize * dpr);
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return { ctx: null, size: cssSize };
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { ctx, size: cssSize };
+    }
+
+    function drawPie(canvas, slices){
+      const setup = setupCanvas(canvas, 132);
+      if (!setup.ctx) return;
+      const { ctx, size } = setup;
+
+      const w = size, h = size;
+      ctx.clearRect(0,0,w,h);
+
+      const cx = w/2, cy = h/2;
+      const r = Math.min(w,h) * 0.44;
+
+      ctx.beginPath();
+      ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.fillStyle = "rgba(148,163,184,0.08)";
+      ctx.fill();
+
+      let start = -Math.PI/2;
+      for (const s of slices){
+        const end = start + (Math.PI*2*s.pct);
+        ctx.beginPath();
+        ctx.moveTo(cx,cy);
+        ctx.arc(cx,cy,r,start,end);
+        ctx.closePath();
+        ctx.fillStyle = s.color;
+        ctx.fill();
+        start = end;
+      }
+
+      ctx.beginPath();
+      ctx.arc(cx,cy,r*0.55,0,Math.PI*2);
+      ctx.fillStyle = "rgba(11,15,25,0.90)";
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.strokeStyle = "rgba(148,163,184,0.18)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    function safeDrawPie(canvas){
+      const raw = canvas.dataset.slices;
+      if (!raw) return;
+
+      let slices;
+      try { slices = JSON.parse(raw); }
+      catch { return; }
+
+      requestAnimationFrame(() => drawPie(canvas, slices));
+    }
+
+    function entropy(dist){
+      let h = 0;
+      for (const p of dist){
+        if (p <= 0) continue;
+        h += -p * Math.log2(p);
+      }
+      return h;
+    }
+
+    function build(){
+      if (!cachedRows.length) return;
+
+      const headers = cachedRows[0] || [];
+      const resultsRow = cachedRows[RESULTS_ROW_NUMBER - 1] || [];
+      const dataRows = cachedRows.slice(RESULTS_ROW_NUMBER);
+
+      const players = dataRows
+        .filter(r => clean(r[NAME_COL]) !== "")
+        .map(r => {
+          const picks = [];
+          for (let c = PICKS_START_COL; c <= PICKS_END_COL; c++) picks.push(clean(r[c]));
+          return { name: clean(r[NAME_COL]), picks };
+        });
+
+      elEntries.textContent = String(players.length);
+
+      let gradedCount = 0;
+      const gradedTotal = (PICKS_END_COL - PICKS_START_COL + 1);
+      for (let c = PICKS_START_COL; c <= PICKS_END_COL; c++) if (clean(resultsRow[c]) !== "") gradedCount++;
+      elGraded.textContent = `Graded: ${gradedCount} / ${gradedTotal}`;
+
+      const perQFreq = [];
+      const perQDenom = [];
+      const questions = [];
+
+      let globalHi = null;
+      let globalLo = null;
+      let polar = null;
+
+      for (let c = PICKS_START_COL; c <= PICKS_END_COL; c++){
+        const qIndex = c - PICKS_START_COL;
+        const qLabel = clean(headers[c]) || `Q${qIndex + 1}`;
+        const result = clean(resultsRow[c]);
+
+        const freq = new Map();
+        let denom = 0;
+
+        for (const p of players){
+          const raw = clean(p.picks[qIndex]);
+          if (!raw) continue;
+          denom++;
+          const key = raw.toLowerCase();
+          const cur = freq.get(key);
+          if (!cur) freq.set(key, { count: 1, display: raw });
+          else cur.count++;
+        }
+
+        perQFreq[qIndex] = freq;
+        perQDenom[qIndex] = denom;
+
+        const dist = Array.from(freq.entries()).map(([key, obj]) => {
+          const pct = denom ? obj.count / denom : 0;
+          return { key, display: obj.display, count: obj.count, pct };
+        }).sort((a,b) => b.pct - a.pct || b.count - a.count || a.display.localeCompare(b.display));
+
+        if (denom > 0 && dist.length){
+          const top = dist[0];
+          if (!globalHi || top.pct > globalHi.pct){
+            globalHi = { pct: top.pct, qIndex, qLabel, ans: top.display, count: top.count, denom, key: top.key };
+          }
+
+          const low = dist[dist.length - 1];
+          if (low.pct > 0 && (!globalLo || low.pct < globalLo.pct)){
+            globalLo = { pct: low.pct, qIndex, qLabel, ans: low.display, count: low.count, denom, key: low.key };
+          }
+
+          const h = entropy(dist.map(d => d.pct));
+          if (!polar || h > polar.h){
+            polar = { h, qIndex, qLabel, options: dist.length, denom };
+          }
+        }
+
+        questions.push({ qIndex, qLabel, result, denom, dist });
+      }
+
+      let chalk = null, contra = null;
+      for (const p of players){
+        let sum = 0, n = 0;
+
+        for (let qi = 0; qi < 15; qi++){
+          const pickRaw = clean(p.picks[qi]);
+          const denom = perQDenom[qi] || 0;
+          if (!pickRaw || denom === 0) continue;
+
+          const key = pickRaw.toLowerCase();
+          const rec = perQFreq[qi].get(key);
+          const count = rec ? rec.count : 0;
+          const pop = count / denom;
+          sum += pop;
+          n++;
+        }
+
+        if (n === 0) continue;
+        const avg = sum / n;
+
+        if (!chalk || avg > chalk.avg || (avg === chalk.avg && p.name.localeCompare(chalk.name) < 0)){
+          chalk = { name: p.name, avg, n };
+        }
+        if (!contra || avg < contra.avg || (avg === contra.avg && p.name.localeCompare(contra.name) < 0)){
+          contra = { name: p.name, avg, n };
+        }
+      }
+
+      elChalk.textContent = chalk ? chalk.name : "—";
+      elChalkNote.textContent = chalk ? `Avg popularity: ${fmtPct(chalk.avg)} across ${chalk.n} answered picks.` : "No picks yet.";
+
+      elContra.textContent = contra ? contra.name : "—";
+      elContraNote.textContent = contra ? `Avg popularity: ${fmtPct(contra.avg)} across ${contra.n} answered picks.` : "No picks yet.";
+
+      // Most unique entry
+      let best = null;
+      for (const p of players){
+        let score = 0;
+        for (let qi = 0; qi < 15; qi++){
+          const pickRaw = clean(p.picks[qi]);
+          if (!pickRaw) continue;
+          const rec = perQFreq[qi].get(pickRaw.toLowerCase());
+          if (rec && rec.count > 0) score += (1 / rec.count);
+        }
+        if (!best || score > best.score || (score === best.score && p.name.localeCompare(best.name) < 0)){
+          best = { name: p.name, score };
+        }
+      }
+
+      elUnique.textContent = best ? best.name : "—";
+      elUniqueNote.textContent = best ? `Uniqueness score: ${best.score.toFixed(2)} (higher = rarer picks).` : "No entries yet.";
+
+      if (globalHi){
+        elHiPct.textContent = `${fmtPct(globalHi.pct)} (${globalHi.count}/${globalHi.denom})`;
+        elHiPctNote.textContent = `${globalHi.qLabel}: “${globalHi.ans}”`;
+      } else {
+        elHiPct.textContent = "—";
+        elHiPctNote.textContent = "No picks yet.";
+      }
+
+      if (globalLo){
+        elRarest.textContent = `${fmtPct(globalLo.pct)} (${globalLo.count}/${globalLo.denom})`;
+        const pickers = players
+          .filter(p => clean(p.picks[globalLo.qIndex]).toLowerCase() === globalLo.key)
+          .map(p => p.name)
+          .sort((a,b) => a.localeCompare(b));
+        elRarestNote.textContent = `${globalLo.qLabel}: “${globalLo.ans}” • Picked by: ${pickers.join(", ") || "—"}`;
+      } else {
+        elRarest.textContent = "—";
+        elRarestNote.textContent = "No picks yet.";
+      }
+
+      if (polar){
+        elPolarQ.textContent = polar.qLabel;
+        elPolarNote.textContent = `Entropy: ${polar.h.toFixed(2)} bits • Options: ${polar.options} • Responses: ${polar.denom}`;
+      } else {
+        elPolarQ.textContent = "—";
+        elPolarNote.textContent = "No picks yet.";
+      }
+
+      const filter = clean(elQ.value).toLowerCase();
+      const filteredQs = filter
+        ? questions.filter(q => q.qLabel.toLowerCase().includes(filter))
+        : questions;
+
+      elQuestions.innerHTML = "";
+
+      filteredQs.forEach(q => {
+        const card = document.createElement("div");
+        card.className = "qcard";
+
+        const head = document.createElement("div");
+        head.className = "qhead";
+
+        const left = document.createElement("div");
+        const title = document.createElement("div");
+        title.className = "qtitle";
+        title.textContent = q.qLabel;
+        left.appendChild(title);
+
+        const right = document.createElement("div");
+        right.className = "qmeta";
+
+        const t1 = document.createElement("span");
+        t1.className = "tag";
+        t1.textContent = `Responses: ${q.denom}`;
+        right.appendChild(t1);
+
+        const t2 = document.createElement("span");
+        t2.className = "tag " + (q.result ? "good" : "warn");
+        t2.textContent = q.result ? `Result: ${q.result}` : "Result: (pending)";
+        right.appendChild(t2);
+
+        // ✅ removed "Most unique" bubble entirely
+
+        head.appendChild(left);
+        head.appendChild(right);
+
+        const body = document.createElement("div");
+        body.className = "qbody";
+
+        if (q.denom === 0){
+          const empty = document.createElement("div");
+          empty.className = "hint";
+          empty.textContent = "No picks entered yet for this question.";
+          body.appendChild(empty);
+        } else {
+          const viz = document.createElement("div");
+          viz.className = "viz";
+
+          const pieWrap = document.createElement("div");
+          pieWrap.className = "pieWrap";
+
+          const canvas = document.createElement("canvas");
+          canvas.className = "pie";
+          pieWrap.appendChild(canvas);
+
+          const legend = document.createElement("div");
+          legend.className = "legend";
+
+          const MAX_SLICES = 7;
+          const sorted = q.dist.slice();
+          let shown = sorted.slice(0, MAX_SLICES);
+          const rest = sorted.slice(MAX_SLICES);
+
+          if (rest.length){
+            const otherCount = rest.reduce((a,b)=>a+b.count, 0);
+            const otherPct = otherCount / q.denom;
+            shown = shown.concat([{ display:"Other", count: otherCount, pct: otherPct }]);
+          }
+
+          const slices = shown.map((d, i) => ({
+            pct: d.pct,
+            color: PIE_COLORS[i % PIE_COLORS.length],
+            d
+          }));
+
+          canvas.dataset.slices = JSON.stringify(
+            slices.map(s => ({ pct: s.pct, color: s.color }))
+          );
+
+          // ✅ draw immediately (cards are always visible)
+          safeDrawPie(canvas);
+
+          slices.forEach(s => {
+            const row = document.createElement("div");
+            row.className = "legRow";
+
+            const sw = document.createElement("div");
+            sw.className = "swatch";
+            sw.style.background = s.color;
+
+            const ans = document.createElement("div");
+            ans.className = "ans";
+            ans.title = s.d.display;
+            ans.textContent = s.d.display;
+
+            const pct = document.createElement("div");
+            pct.className = "pct";
+            pct.textContent = `${fmtPct(s.d.pct)} • ${s.d.count}/${q.denom}`;
+
+            row.appendChild(sw);
+            row.appendChild(ans);
+            row.appendChild(pct);
+            legend.appendChild(row);
+          });
+
+          viz.appendChild(pieWrap);
+          viz.appendChild(legend);
+          body.appendChild(viz);
+
+          const hint = document.createElement("div");
+          hint.className = "hint";
+          hint.textContent = rest.length
+            ? `Pie shows top ${MAX_SLICES} answers. Remaining ${rest.length} answers are grouped as “Other”.`
+            : "Pie shows all answers.";
+          body.appendChild(hint);
+        }
+
+        card.appendChild(head);
+        card.appendChild(body);
+
+        elQuestions.appendChild(card);
+      });
+    }
+
+    async function refresh(){
+      try{
+        elStatus.textContent = "Loading…";
+        const res = await fetch(SHEET_CSV_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const text = await res.text();
+        cachedRows = parseCSV(text);
+
+        build();
+
+        const now = new Date();
+        elUpdated.textContent = "Updated: " + now.toLocaleTimeString([], {
+          hour: "numeric",
+          minute: "2-digit",
+          second: "2-digit"
+        });
+        elStatus.textContent = "Live";
+      } catch(err){
+        elStatus.textContent = "Couldn’t load: " + (err?.message || String(err));
+        console.error(err);
+      }
+    }
+
+    elQ.addEventListener("input", build);
+
+    refresh();
+    setInterval(refresh, REFRESH_MS);
+  </script>
 </body>
 </html>

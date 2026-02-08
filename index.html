@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SB60 Results Breakdown</title>
+
+  <style>
+    :root{
+      --bg: #0b0f19;
+      --ink: #e5e7eb;
+      --muted: #94a3b8;
+      --line: rgba(148,163,184,0.18);
+      --cardTop: rgba(255,255,255,0.05);
+      --shadow: 0 18px 44px rgba(0,0,0,0.50), 0 6px 18px rgba(0,0,0,0.35);
+
+      --accent:#22c55e;
+
+      --goodBg: rgba(34,197,94,0.16);
+      --goodInk:#86efac;
+
+      --badBg:  rgba(239,68,68,0.16);
+      --badInk: #fca5a5;
+
+      --waitBg: rgba(148,163,184,0.10);
+      --waitInk:#cbd5e1;
+
+      --tbBg: rgba(99,102,241,0.18);
+      --tbInk:#c7d2fe;
+
+      --warnBg: rgba(249,115,22,0.14);
+      --warnInk: #fdba74;
+
+      --focusGlow: 0 0 0 4px rgba(34,197,94,0.18);
+    }
+
+    html, body{
+      margin:0; padding:0;
+      background:
+        radial-gradient(1200px 800px at 15% 0%, rgba(34,197,94,0.10), transparent 55%),
+        radial-gradient(900px 700px at 85% 0%, rgba(99,102,241,0.12), transparent 55%),
+        var(--bg);
+      font-family: Arial, sans-serif;
+      color: var(--ink);
+    }
+
+    .wrap{ max-width: 1200px; margin: 0 auto; padding: 16px; }
+
+    .header{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom: 12px;
+    }
+    .title{ font-size: 22px; font-weight: 900; letter-spacing: .4px; }
+    .meta{ text-align:right; font-size: 12px; color: var(--muted); line-height: 1.25; }
+
+    .card{
+      background: linear-gradient(180deg, var(--cardTop), rgba(255,255,255,0.02));
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(8px);
+    }
+
+    .toolbar{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      padding: 12px 12px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      flex-wrap: wrap;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(148,163,184,0.10);
+      border: 1px solid rgba(148,163,184,0.18);
+      font-size: 13px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .dot{
+      width:10px; height:10px; border-radius:999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(34,197,94,0.18);
+    }
+
+    .controls{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-left:auto;
+    }
+
+    input[type="search"]{
+      width:min(420px, 100%);
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,0.22);
+      outline: none;
+      font-size: 14px;
+      color: var(--ink);
+      background: rgba(15,23,42,0.85);
+    }
+    input[type="search"]::placeholder{ color: rgba(148,163,184,0.75); }
+    input[type="search"]:focus{
+      border-color: rgba(34,197,94,0.55);
+      box-shadow: var(--focusGlow);
+    }
+
+    .content{ padding: 14px; }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .stat{
+      grid-column: span 6;
+      background: rgba(15,23,42,0.55);
+      border: 1px solid rgba(148,163,184,0.18);
+      border-radius: 14px;
+      padding: 12px;
+    }
+    @media (max-width: 900px){
+      .stat{ grid-column: span 12; }
+    }
+
+    .stat .k{ color: var(--muted); font-size: 12px; }
+    .stat .v{ font-size: 18px; font-weight: 900; margin-top: 4px; }
+    .stat .s{ color: var(--muted); font-size: 12px; margin-top: 6px; line-height: 1.35; }
+
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.18);
+      background: rgba(148,163,184,0.08);
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .tag.good{ background: var(--goodBg); color: var(--goodInk); border-color: rgba(34,197,94,0.28); }
+    .tag.bad{ background: var(--badBg); color: var(--badInk); border-color: rgba(239,68,68,0.28); }
+    .tag.warn{ background: var(--warnBg); color: var(--warnInk); border-color: rgba(249,115,22,0.38); }
+    .tag.tb{ background: var(--tbBg); color: var(--tbInk); border-color: rgba(99,102,241,0.45); }
+
+    .section-title{
+      margin: 16px 0 8px;
+      font-weight: 900;
+      font-size: 14px;
+      color: var(--muted);
+      letter-spacing: .4px;
+      text-transform: uppercase;
+    }
+
+    .qcard{
+      border: 1px solid rgba(148,163,184,0.18);
+      background: rgba(15,23,42,0.55);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .qhead{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap: 10px;
+      padding: 12px;
+      border-bottom: 1px solid rgba(148,163,184,0.14);
+      cursor: pointer;
+      user-select:none;
+    }
+
+    .qtitle{
+      font-weight: 900;
+      line-height: 1.25;
+    }
+    .qmeta{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      text-align:right;
+    }
+
+    .qbody{
+      padding: 10px 12px 12px;
+      display:none;
+    }
+    .qcard.open .qbody{ display:block; }
+
+    .row{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(148,163,184,0.10);
+    }
+    .row:last-child{ border-bottom: none; }
+
+    .ans{
+      min-width: 200px;
+      font-weight: 800;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    @media (max-width: 600px){
+      .ans{ min-width: 140px; }
+    }
+
+    .barwrap{
+      flex: 1;
+      height: 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.18);
+      background: rgba(148,163,184,0.08);
+      overflow:hidden;
+    }
+    .bar{
+      height: 100%;
+      width: 0%;
+      background: rgba(34,197,94,0.45);
+      border-radius: 999px;
+      transition: width 420ms ease;
+    }
+
+    .pct{
+      min-width: 90px;
+      text-align:right;
+      font-variant-numeric: tabular-nums;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .footer{
+      padding: 10px 12px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      display:flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    }
+
+    a.link{
+      color: var(--goodInk);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(134,239,172,0.35);
+    }
+    a.link:hover{ opacity: .9; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div>
+        <div class="title">SB60 Results Breakdown</div>
+        <div class="meta" style="margin-top:6px;">
+          <span class="tag">Same data source as Standings</span>
+        </div>
+      </div>
+      <div class="meta">
+        <div id="updated">Updated: —</div>
+        <div id="status">Loading…</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <div class="pill"><span class="dot"></span><span>Auto-updates every 30s</span></div>
+        <div class="pill" id="graded-pill">Graded: — / 15</div>
+        <div class="controls">
+          <input id="q" type="search" placeholder="Filter questions…" />
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="grid">
+          <div class="stat">
+            <div class="k">Entries counted</div>
+            <div class="v" id="entries">—</div>
+            <div class="s">Only rows with a Name in column A (rows 8+).</div>
+          </div>
+
+          <div class="stat">
+            <div class="k">Most unique entry</div>
+            <div class="v" id="uniqueEntry">—</div>
+            <div class="s" id="uniqueNote">Uniqueness score rewards rare picks (sum of 1 / pick-frequency).</div>
+          </div>
+
+          <div class="stat">
+            <div class="k">Highest % answer (any question)</div>
+            <div class="v" id="hiPct">—</div>
+            <div class="s" id="hiPctNote">Most “chalk” pick across all questions (non-blank).</div>
+          </div>
+
+          <div class="stat">
+            <div class="k">Lowest non-zero % answer (any question)</div>
+            <div class="v" id="loPct">—</div>
+            <div class="s" id="loPctNote">Rarest pick that at least one person chose.</div>
+          </div>
+        </div>
+
+        <div class="section-title">Question breakdown</div>
+        <div id="questions"></div>
+      </div>
+
+      <div class="footer">
+        <div>Click a question to expand. Percentages are based on non-blank picks for that question.</div>
+        <div>Tip: You can add a link back to standings later.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SHEET_CSV_URL =
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vQvxWm5EeVD-akvWoB9ArtroL8J1nh8USmTiPdepmbp8JNS3HfQvKtOfSEcgumT4mccp95PJBJBlfix/pub?gid=1947708892&single=true&output=csv";
+
+    // Sheet layout
+    const RESULTS_ROW_NUMBER = 7; // results live in row 7 (1-based)
+
+    // Columns (0-based indexes)
+    const NAME_COL = 0;            // A
+    const PICKS_START_COL = 1;     // B
+    const PICKS_END_COL = 15;      // P
+    const TIE_GUESS_COL = 16;      // Q (ignored for graded count + distributions)
+
+    const REFRESH_MS = 30000;
+
+    const elUpdated = document.getElementById("updated");
+    const elStatus  = document.getElementById("status");
+    const elGraded  = document.getElementById("graded-pill");
+    const elQ       = document.getElementById("q");
+
+    const elEntries = document.getElementById("entries");
+    const elUnique  = document.getElementById("uniqueEntry");
+    const elUniqueNote = document.getElementById("uniqueNote");
+    const elHiPct = document.getElementById("hiPct");
+    const elHiPctNote = document.getElementById("hiPctNote");
+    const elLoPct = document.getElementById("loPct");
+    const elLoPctNote = document.getElementById("loPctNote");
+
+    const elQuestions = document.getElementById("questions");
+
+    let cachedRows = [];
+
+    function parseCSV(text) {
+      const rows = [];
+      let row = [];
+      let cur = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        const next = text[i + 1];
+
+        if (ch === '"' && inQuotes && next === '"') { cur += '"'; i++; continue; }
+        if (ch === '"') { inQuotes = !inQuotes; continue; }
+
+        if (ch === "," && !inQuotes) { row.push(cur); cur = ""; continue; }
+        if ((ch === "\n" || ch === "\r") && !inQuotes) {
+          if (ch === "\r" && next === "\n") i++;
+          row.push(cur);
+          if (row.some(cell => String(cell).trim() !== "")) rows.push(row);
+          row = [];
+          cur = "";
+          continue;
+        }
+        cur += ch;
+      }
+      row.push(cur);
+      if (row.some(cell => String(cell).trim() !== "")) rows.push(row);
+
+      const maxLen = Math.max(0, ...rows.map(r => r.length));
+      return rows.map(r => r.concat(Array(Math.max(0, maxLen - r.length)).fill("")));
+    }
+
+    const clean = v => String(v ?? "").trim();
+
+    function fmtPct(x){
+      // x is 0..1
+      return (x * 100).toFixed(x*100 >= 10 ? 0 : 1) + "%";
+    }
+
+    function build(){
+      if (!cachedRows.length) return;
+
+      const headers = cachedRows[0] || [];
+      const resultsRow = cachedRows[RESULTS_ROW_NUMBER - 1] || [];
+      const dataRows = cachedRows.slice(RESULTS_ROW_NUMBER); // rows 8+
+
+      const players = dataRows
+        .filter(r => clean(r[NAME_COL]) !== "")
+        .map(r => ({
+          name: clean(r[NAME_COL]),
+          picks: (() => {
+            const arr = [];
+            for (let c = PICKS_START_COL; c <= PICKS_END_COL; c++) arr.push(clean(r[c]));
+            return arr;
+          })()
+        }));
+
+      elEntries.textContent = String(players.length);
+
+      // Graded count ONLY B7:P7 (15)
+      let gradedCount = 0;
+      const gradedTotal = (PICKS_END_COL - PICKS_START_COL + 1);
+      for (let c = PICKS_START_COL; c <= PICKS_END_COL; c++) if (clean(resultsRow[c]) !== "") gradedCount++;
+      elGraded.textContent = `Graded: ${gradedCount} / ${gradedTotal}`;
+      elGraded.title = "Does not include tiebreak";
+
+      // Question breakdown data
+      const questions = [];
+      let globalHi = null; // {pct, qIndex, ans, count, denom}
+      let globalLo = null; // lowest non-zero
+
+      // For uniqueness scoring we need per-question frequency maps
+      const perQFreq = [];
+
+      for (let c = PICKS_START_COL; c <= PICKS_END_COL; c++){
+        const qIndex = c - PICKS_START_COL; // 0..14
+        const qLabel = clean(headers[c]) || `Q${qIndex + 1}`;
+        const result = clean(resultsRow[c]); // may be blank
+
+        const freq = new Map();
+        let denom = 0;
+
+        for (const p of players){
+          const ans = clean(p.picks[qIndex]);
+          if (!ans) continue;
+          denom++;
+          const key = ans.toLowerCase();
+          freq.set(key, (freq.get(key) || 0) + 1);
+        }
+
+        perQFreq[qIndex] = freq;
+
+        // Build sorted list
+        const dist = Array.from(freq.entries()).map(([k, count]) => {
+          // Keep original casing from one of the picks if possible:
+          // (we’ll just title-case display from the key; simplest)
+          const display = k;
+          const pct = denom ? count / denom : 0;
+          return { key: k, display, count, pct };
+        }).sort((a,b) => b.pct - a.pct || b.count - a.count || a.display.localeCompare(b.display));
+
+        // Per-question extremes (only if denom > 0)
+        if (denom > 0){
+          const top = dist[0];
+          if (top){
+            if (!globalHi || top.pct > globalHi.pct){
+              globalHi = { pct: top.pct, qIndex, qLabel, ans: top.display, count: top.count, denom };
+            }
+          }
+          // lowest non-zero = last item (since sorted desc)
+          const low = dist[dist.length - 1];
+          if (low && low.pct > 0){
+            if (!globalLo || low.pct < globalLo.pct){
+              globalLo = { pct: low.pct, qIndex, qLabel, ans: low.display, count: low.count, denom };
+            }
+          }
+        }
+
+        // Unique pick for this question = smallest count (if any)
+        let mostUnique = null;
+        if (dist.length){
+          // Find minimum count (rare pick(s))
+          let minCount = Infinity;
+          for (const d of dist) minCount = Math.min(minCount, d.count);
+          const rares = dist.filter(d => d.count === minCount)
+                            .sort((a,b) => a.display.localeCompare(b.display));
+          mostUnique = rares[0] || null;
+        }
+
+        questions.push({
+          qIndex,
+          qLabel,
+          result,
+          denom,
+          dist,
+          mostUnique
+        });
+      }
+
+      // Global cards
+      if (globalHi){
+        elHiPct.textContent = `${fmtPct(globalHi.pct)} (${globalHi.count}/${globalHi.denom})`;
+        elHiPctNote.textContent = `${globalHi.qLabel}: “${globalHi.ans}”`;
+      } else {
+        elHiPct.textContent = "—";
+        elHiPctNote.textContent = "No picks yet.";
+      }
+
+      if (globalLo){
+        elLoPct.textContent = `${fmtPct(globalLo.pct)} (${globalLo.count}/${globalLo.denom})`;
+        elLoPctNote.textContent = `${globalLo.qLabel}: “${globalLo.ans}”`;
+      } else {
+        elLoPct.textContent = "—";
+        elLoPctNote.textContent = "No picks yet.";
+      }
+
+      // Most unique entry (overall)
+      // score = sum(1 / frequency of their pick for each question they answered)
+      let best = null; // {name, score}
+      for (const p of players){
+        let score = 0;
+        for (let qi = 0; qi < 15; qi++){
+          const pick = clean(p.picks[qi]);
+          if (!pick) continue;
+          const freq = perQFreq[qi];
+          const count = freq.get(pick.toLowerCase()) || 0;
+          if (count > 0) score += (1 / count);
+        }
+        if (!best || score > best.score){
+          best = { name: p.name, score };
+        }
+      }
+
+      if (best){
+        elUnique.textContent = best.name;
+        elUniqueNote.textContent = `Uniqueness score: ${best.score.toFixed(2)} (higher = rarer picks).`;
+      } else {
+        elUnique.textContent = "—";
+        elUniqueNote.textContent = "No entries yet.";
+      }
+
+      // Render questions (with filter)
+      const filter = clean(elQ.value).toLowerCase();
+      const filteredQs = filter
+        ? questions.filter(q => q.qLabel.toLowerCase().includes(filter))
+        : questions;
+
+      elQuestions.innerHTML = "";
+
+      filteredQs.forEach(q => {
+        const card = document.createElement("div");
+        card.className = "qcard";
+
+        const head = document.createElement("div");
+        head.className = "qhead";
+
+        const left = document.createElement("div");
+        const title = document.createElement("div");
+        title.className = "qtitle";
+        title.textContent = q.qLabel;
+        left.appendChild(title);
+
+        const right = document.createElement("div");
+        right.className = "qmeta";
+
+        // Denom
+        const t1 = document.createElement("span");
+        t1.className = "tag";
+        t1.textContent = `Responses: ${q.denom}`;
+        right.appendChild(t1);
+
+        // Result (if set)
+        const t2 = document.createElement("span");
+        t2.className = "tag " + (q.result ? "good" : "warn");
+        t2.textContent = q.result ? `Result: ${q.result}` : "Result: (pending)";
+        right.appendChild(t2);
+
+        // Most unique pick
+        const t3 = document.createElement("span");
+        t3.className = "tag tb";
+        t3.textContent = q.mostUnique
+          ? `Most unique: ${q.mostUnique.display} (${q.mostUnique.count})`
+          : "Most unique: —";
+        right.appendChild(t3);
+
+        head.appendChild(left);
+        head.appendChild(right);
+
+        const body = document.createElement("div");
+        body.className = "qbody";
+
+        if (q.denom === 0){
+          const empty = document.createElement("div");
+          empty.style.color = "var(--muted)";
+          empty.style.fontSize = "13px";
+          empty.style.padding = "6px 0";
+          empty.textContent = "No picks entered yet for this question.";
+          body.appendChild(empty);
+        } else {
+          q.dist.forEach(d => {
+            const row = document.createElement("div");
+            row.className = "row";
+
+            const ans = document.createElement("div");
+            ans.className = "ans";
+            ans.title = d.display;
+            ans.textContent = d.display;
+            row.appendChild(ans);
+
+            const barwrap = document.createElement("div");
+            barwrap.className = "barwrap";
+            const bar = document.createElement("div");
+            bar.className = "bar";
+            // width set after append (transition)
+            barwrap.appendChild(bar);
+            row.appendChild(barwrap);
+
+            const pct = document.createElement("div");
+            pct.className = "pct";
+            pct.textContent = `${fmtPct(d.pct)} • ${d.count}/${q.denom}`;
+            row.appendChild(pct);
+
+            body.appendChild(row);
+
+            // set width after paint so it animates
+            requestAnimationFrame(() => {
+              bar.style.width = (d.pct * 100).toFixed(2) + "%";
+            });
+          });
+        }
+
+        card.appendChild(head);
+        card.appendChild(body);
+
+        head.addEventListener("click", () => {
+          card.classList.toggle("open");
+        });
+
+        elQuestions.appendChild(card);
+      });
+    }
+
+    async function refresh(){
+      try{
+        elStatus.textContent = "Loading…";
+        const res = await fetch(SHEET_CSV_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const text = await res.text();
+        cachedRows = parseCSV(text);
+
+        build();
+
+        const now = new Date();
+        elUpdated.textContent = "Updated: " + now.toLocaleTimeString([], {
+          hour: "numeric",
+          minute: "2-digit",
+          second: "2-digit"
+        });
+        elStatus.textContent = "Live";
+      } catch(err){
+        elStatus.textContent = "Couldn’t load";
+        console.error(err);
+      }
+    }
+
+    elQ.addEventListener("input", build);
+
+    refresh();
+    setInterval(refresh, REFRESH_MS);
+  </script>
+</body>
+</html>

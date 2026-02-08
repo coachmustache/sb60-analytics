@@ -168,7 +168,7 @@
       gap: 10px;
       padding: 12px;
       border-bottom: 1px solid rgba(148,163,184,0.14);
-      cursor: pointer;
+      cursor: default; /* no longer clickable */
       user-select:none;
     }
 
@@ -197,8 +197,8 @@
     .tag.warn{ background: var(--warnBg); color: var(--warnInk); border-color: rgba(249,115,22,0.38); }
     .tag.tb{ background: var(--tbBg); color: var(--tbInk); border-color: rgba(99,102,241,0.45); }
 
-    .qbody{ padding: 12px; display:none; }
-    .qcard.open .qbody{ display:block; }
+    /* ✅ always visible */
+    .qbody{ padding: 12px; display:block; }
 
     .viz{
       display:flex;
@@ -236,7 +236,7 @@
     .legRow{
       display:flex;
       gap:10px;
-      align-items:center;
+      align-items:flex-start; /* ✅ better wrapping */
       border-bottom: 1px solid rgba(148,163,184,0.10);
       padding-bottom: 8px;
     }
@@ -246,15 +246,22 @@
       width: 10px; height: 10px; border-radius: 3px;
       border: 1px solid rgba(148,163,184,0.30);
       flex: 0 0 auto;
+      margin-top: 4px;
     }
 
+    /* ✅ show full answer text (wrap instead of ellipsis) */
     .ans{
       flex: 1 1 auto;
       min-width: 0;
       font-weight: 800;
-      overflow:hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      line-height: 1.2;
     }
 
     .pct{
@@ -263,6 +270,7 @@
       color: var(--muted);
       font-size: 12px;
       white-space: nowrap;
+      align-self:flex-start;
     }
 
     .hint{
@@ -357,7 +365,7 @@
       </div>
 
       <div class="footer">
-        <div>Click a question to expand. Percentages based on non-blank picks for that question.</div>
+        <div>Percentages based on non-blank picks for that question.</div>
         <div>Tip: “Graded” does not include tiebreak.</div>
       </div>
     </div>
@@ -459,7 +467,6 @@
       "rgba(148,163,184,0.45)"
     ];
 
-    // ✅ Simple, reliable canvas sizing: fixed CSS size (132x132) + scale for DPR
     function setupCanvas(canvas, cssSize = 132){
       const dpr = window.devicePixelRatio || 1;
       canvas.style.width = cssSize + "px";
@@ -469,7 +476,7 @@
 
       const ctx = canvas.getContext("2d");
       if (!ctx) return { ctx: null, size: cssSize };
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // draw in CSS pixels
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       return { ctx, size: cssSize };
     }
 
@@ -484,7 +491,6 @@
       const cx = w/2, cy = h/2;
       const r = Math.min(w,h) * 0.44;
 
-      // background ring
       ctx.beginPath();
       ctx.arc(cx,cy,r,0,Math.PI*2);
       ctx.fillStyle = "rgba(148,163,184,0.08)";
@@ -502,13 +508,11 @@
         start = end;
       }
 
-      // donut hole
       ctx.beginPath();
       ctx.arc(cx,cy,r*0.55,0,Math.PI*2);
       ctx.fillStyle = "rgba(11,15,25,0.90)";
       ctx.fill();
 
-      // outline
       ctx.beginPath();
       ctx.arc(cx,cy,r,0,Math.PI*2);
       ctx.strokeStyle = "rgba(148,163,184,0.18)";
@@ -516,7 +520,6 @@
       ctx.stroke();
     }
 
-    // ✅ Draw only when visible (fixes canvases drawn while in display:none)
     function safeDrawPie(canvas){
       const raw = canvas.dataset.slices;
       if (!raw) return;
@@ -554,13 +557,11 @@
 
       elEntries.textContent = String(players.length);
 
-      // Graded count ONLY B7:P7
       let gradedCount = 0;
       const gradedTotal = (PICKS_END_COL - PICKS_START_COL + 1);
       for (let c = PICKS_START_COL; c <= PICKS_END_COL; c++) if (clean(resultsRow[c]) !== "") gradedCount++;
       elGraded.textContent = `Graded: ${gradedCount} / ${gradedTotal}`;
 
-      // Map<keyLower, {count, display}>
       const perQFreq = [];
       const perQDenom = [];
       const questions = [];
@@ -623,7 +624,6 @@
         questions.push({ qIndex, qLabel, result, denom, dist, mostUnique });
       }
 
-      // Chalkiest / Contrarian
       let chalk = null, contra = null;
       for (const p of players){
         let sum = 0, n = 0;
@@ -658,7 +658,6 @@
       elContra.textContent = contra ? contra.name : "—";
       elContraNote.textContent = contra ? `Avg popularity: ${fmtPct(contra.avg)} across ${contra.n} answered picks.` : "No picks yet.";
 
-      // Most unique entry
       let best = null;
       for (const p of players){
         let score = 0;
@@ -676,7 +675,6 @@
       elUnique.textContent = best ? best.name : "—";
       elUniqueNote.textContent = best ? `Uniqueness score: ${best.score.toFixed(2)} (higher = rarer picks).` : "No entries yet.";
 
-      // Chalkiest answer
       if (globalHi){
         elHiPct.textContent = `${fmtPct(globalHi.pct)} (${globalHi.count}/${globalHi.denom})`;
         elHiPctNote.textContent = `${globalHi.qLabel}: “${globalHi.ans}”`;
@@ -685,7 +683,6 @@
         elHiPctNote.textContent = "No picks yet.";
       }
 
-      // Rarest pick + who picked it
       if (globalLo){
         elRarest.textContent = `${fmtPct(globalLo.pct)} (${globalLo.count}/${globalLo.denom})`;
         const pickers = players
@@ -698,7 +695,6 @@
         elRarestNote.textContent = "No picks yet.";
       }
 
-      // Polarizing
       if (polar){
         elPolarQ.textContent = polar.qLabel;
         elPolarNote.textContent = `Entropy: ${polar.h.toFixed(2)} bits • Options: ${polar.options} • Responses: ${polar.denom}`;
@@ -707,7 +703,6 @@
         elPolarNote.textContent = "No picks yet.";
       }
 
-      // Render cards
       const filter = clean(elQ.value).toLowerCase();
       const filteredQs = filter
         ? questions.filter(q => q.qLabel.toLowerCase().includes(filter))
@@ -790,10 +785,12 @@
             d
           }));
 
-          // ✅ Store pie slices; draw only when visible/open
           canvas.dataset.slices = JSON.stringify(
             slices.map(s => ({ pct: s.pct, color: s.color }))
           );
+
+          // ✅ draw immediately (cards are always visible)
+          safeDrawPie(canvas);
 
           slices.forEach(s => {
             const row = document.createElement("div");
@@ -832,17 +829,6 @@
 
         card.appendChild(head);
         card.appendChild(body);
-
-        // ✅ draw the pie when opening the card (now visible)
-        head.addEventListener("click", () => {
-          const opening = !card.classList.contains("open");
-          card.classList.toggle("open");
-
-          if (opening){
-            const canv = card.querySelector("canvas.pie");
-            if (canv) safeDrawPie(canv);
-          }
-        });
 
         elQuestions.appendChild(card);
       });

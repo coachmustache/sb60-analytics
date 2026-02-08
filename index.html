@@ -19,12 +19,6 @@
       --goodBg: rgba(34,197,94,0.16);
       --goodInk:#86efac;
 
-      --badBg:  rgba(239,68,68,0.16);
-      --badInk: #fca5a5;
-
-      --tbBg: rgba(99,102,241,0.18);
-      --tbInk:#c7d2fe;
-
       --warnBg: rgba(249,115,22,0.14);
       --warnInk: #fdba74;
 
@@ -196,7 +190,6 @@
     .tag.good{ background: var(--goodBg); color: var(--goodInk); border-color: rgba(34,197,94,0.28); }
     .tag.warn{ background: var(--warnBg); color: var(--warnInk); border-color: rgba(249,115,22,0.38); }
 
-    /* ✅ always visible */
     .qbody{ padding: 12px; display:block; }
 
     .viz{
@@ -267,13 +260,6 @@
       font-size: 12px;
       white-space: nowrap;
       align-self:flex-start;
-    }
-
-    .hint{
-      margin-top: 10px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.35;
     }
 
     .footer{
@@ -362,7 +348,6 @@
 
       <div class="footer">
         <div>Percentages based on non-blank picks for that question.</div>
-        <div>Tip: “Graded” does not include tiebreak.</div>
       </div>
     </div>
   </div>
@@ -645,7 +630,6 @@
       elContra.textContent = contra ? contra.name : "—";
       elContraNote.textContent = contra ? `Avg popularity: ${fmtPct(contra.avg)} across ${contra.n} answered picks.` : "No picks yet.";
 
-      // Most unique entry
       let best = null;
       for (const p of players){
         let score = 0;
@@ -714,8 +698,6 @@
         const right = document.createElement("div");
         right.className = "qmeta";
 
-        // ✅ removed "Responses: X" bubble entirely
-
         const t2 = document.createElement("span");
         t2.className = "tag " + (q.result ? "good" : "warn");
         t2.textContent = q.result ? `Result: ${q.result}` : "Result: (pending)";
@@ -746,7 +728,9 @@
           const legend = document.createElement("div");
           legend.className = "legend";
 
-          const MAX_SLICES = 7;
+          // NOTE: if you truly want ALL answers always,
+          // you can set MAX_SLICES to a huge number or remove the "Other" grouping.
+          const MAX_SLICES = 9999;
           const sorted = q.dist.slice();
           let shown = sorted.slice(0, MAX_SLICES);
           const rest = sorted.slice(MAX_SLICES);
@@ -795,13 +779,6 @@
           viz.appendChild(pieWrap);
           viz.appendChild(legend);
           body.appendChild(viz);
-
-          const hint = document.createElement("div");
-          hint.className = "hint";
-          hint.textContent = rest.length
-            ? `Pie shows top ${MAX_SLICES} answers. Remaining ${rest.length} answers are grouped as “Other”.`
-            : "Pie shows all answers.";
-          body.appendChild(hint);
         }
 
         card.appendChild(head);

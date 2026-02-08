@@ -19,7 +19,8 @@
       --goodBg: rgba(34,197,94,0.16);
       --goodInk:#86efac;
 
-      --warnBg: rgba(249,115,22,0.14);
+      /* softer orange pending */
+      --warnBg: rgba(249,115,22,0.10);
       --warnInk: #fdba74;
 
       --focusGlow: 0 0 0 4px rgba(34,197,94,0.18);
@@ -187,8 +188,16 @@
       font-size: 12px;
       white-space: nowrap;
     }
-    .tag.good{ background: var(--goodBg); color: var(--goodInk); border-color: rgba(34,197,94,0.28); }
-    .tag.warn{ background: var(--warnBg); color: var(--warnInk); border-color: rgba(249,115,22,0.38); }
+    .tag.good{
+      background: var(--goodBg);
+      color: var(--goodInk);
+      border-color: rgba(34,197,94,0.28);
+    }
+    .tag.warn{
+      background: var(--warnBg);
+      color: var(--warnInk);
+      border-color: rgba(249,115,22,0.25);
+    }
 
     .qbody{ padding: 12px; display:block; }
 
@@ -233,6 +242,17 @@
       padding-bottom: 8px;
     }
     .legRow:last-child{ border-bottom:none; padding-bottom: 0; }
+
+    /* winner outline in legend (no recolor) */
+    .legRow.winner{
+      border-bottom-color: rgba(226,232,240,0.35);
+      outline: 2px solid rgba(226,232,240,0.22);
+      outline-offset: 6px;
+      border-radius: 10px;
+      padding: 8px;
+      margin: -2px 0;
+      background: rgba(148,163,184,0.06);
+    }
 
     .swatch{
       width: 10px; height: 10px; border-radius: 3px;
@@ -302,7 +322,7 @@
           <div class="stat">
             <div class="k">Entries Received</div>
             <div class="v" id="entries">—</div>
-            <div class="s">Total current submissions.</div>
+            <div class="s">Total submissions currently in the sheet.</div>
           </div>
 
           <div class="stat">
@@ -436,15 +456,16 @@
       return (x * 100).toFixed(x*100 >= 10 ? 0 : 1) + "%";
     }
 
+    // ✅ Neutral palette (no red/green)
     const PIE_COLORS = [
-      "rgba(34,197,94,0.55)",
-      "rgba(99,102,241,0.55)",
-      "rgba(249,115,22,0.55)",
-      "rgba(239,68,68,0.55)",
-      "rgba(14,165,233,0.55)",
-      "rgba(168,85,247,0.55)",
-      "rgba(251,191,36,0.55)",
-      "rgba(148,163,184,0.45)"
+      "rgba(59,130,246,0.55)",  // blue
+      "rgba(99,102,241,0.55)",  // indigo
+      "rgba(168,85,247,0.55)",  // purple
+      "rgba(14,165,233,0.55)",  // sky
+      "rgba(245,158,11,0.55)",  // amber
+      "rgba(236,72,153,0.55)",  // pink
+      "rgba(148,163,184,0.50)", // slate
+      "rgba(56,189,248,0.55)"   // light blue
     ];
 
     function setupCanvas(canvas, cssSize = 132){
@@ -460,7 +481,8 @@
       return { ctx, size: cssSize };
     }
 
-    function drawPie(canvas, slices){
+    // ✅ Outline winner wedge (no recolor)
+    function drawPie(canvas, slices, winnerKey){
       const setup = setupCanvas(canvas, 132);
       if (!setup.ctx) return;
       const { ctx, size } = setup;
@@ -471,44 +493,82 @@
       const cx = w/2, cy = h/2;
       const r = Math.min(w,h) * 0.44;
 
+      // background ring
       ctx.beginPath();
       ctx.arc(cx,cy,r,0,Math.PI*2);
       ctx.fillStyle = "rgba(148,163,184,0.08)";
       ctx.fill();
 
       let start = -Math.PI/2;
+      let winnerAngles = null;
+
       for (const s of slices){
         const end = start + (Math.PI*2*s.pct);
+
+        // slice
         ctx.beginPath();
         ctx.moveTo(cx,cy);
         ctx.arc(cx,cy,r,start,end);
         ctx.closePath();
         ctx.fillStyle = s.color;
         ctx.fill();
+
+        if (winnerKey && s.key && s.key === winnerKey && s.pct > 0){
+          winnerAngles = { start, end };
+        }
+
         start = end;
       }
 
+      // donut hole
       ctx.beginPath();
       ctx.arc(cx,cy,r*0.55,0,Math.PI*2);
       ctx.fillStyle = "rgba(11,15,25,0.90)";
       ctx.fill();
 
+      // outline of chart
       ctx.beginPath();
       ctx.arc(cx,cy,r,0,Math.PI*2);
       ctx.strokeStyle = "rgba(148,163,184,0.18)";
       ctx.lineWidth = 2;
       ctx.stroke();
+
+      // ✅ winner outline (wedge path)
+      if (winnerAngles){
+        ctx.save();
+        ctx.shadowColor = "rgba(226,232,240,0.35)";
+        ctx.shadowBlur = 10;
+
+        ctx.beginPath();
+        ctx.moveTo(cx,cy);
+        ctx.arc(cx,cy,r,winnerAngles.start,winnerAngles.end);
+        ctx.closePath();
+
+        ctx.strokeStyle = "rgba(226,232,240,0.85)";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // inner arc accent (keeps outline visible on donut)
+        ctx.beginPath();
+        ctx.arc(cx,cy,r*0.62,winnerAngles.start,winnerAngles.end);
+        ctx.strokeStyle = "rgba(226,232,240,0.65)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.restore();
+      }
     }
 
     function safeDrawPie(canvas){
       const raw = canvas.dataset.slices;
       if (!raw) return;
 
-      let slices;
-      try { slices = JSON.parse(raw); }
+      let payload;
+      try { payload = JSON.parse(raw); }
       catch { return; }
 
-      requestAnimationFrame(() => drawPie(canvas, slices));
+      const winnerKey = canvas.dataset.winner || "";
+      requestAnimationFrame(() => drawPie(canvas, payload, winnerKey));
     }
 
     function entropy(dist){
@@ -596,6 +656,7 @@
         questions.push({ qIndex, qLabel, result, denom, dist });
       }
 
+      // Chalkiest / Contrarian
       let chalk = null, contra = null;
       for (const p of players){
         let sum = 0, n = 0;
@@ -630,6 +691,7 @@
       elContra.textContent = contra ? contra.name : "—";
       elContraNote.textContent = contra ? `Avg popularity: ${fmtPct(contra.avg)} across ${contra.n} answered picks.` : "No picks yet.";
 
+      // Most unique entry
       let best = null;
       for (const p of players){
         let score = 0;
@@ -647,6 +709,7 @@
       elUnique.textContent = best ? best.name : "—";
       elUniqueNote.textContent = best ? `Uniqueness score: ${best.score.toFixed(2)} (higher = rarer picks).` : "No entries yet.";
 
+      // Chalkiest answer
       if (globalHi){
         elHiPct.textContent = `${fmtPct(globalHi.pct)} (${globalHi.count}/${globalHi.denom})`;
         elHiPctNote.textContent = `${globalHi.qLabel}: “${globalHi.ans}”`;
@@ -655,6 +718,7 @@
         elHiPctNote.textContent = "No picks yet.";
       }
 
+      // Rarest pick
       if (globalLo){
         elRarest.textContent = `${fmtPct(globalLo.pct)} (${globalLo.count}/${globalLo.denom})`;
         const pickers = players
@@ -667,6 +731,7 @@
         elRarestNote.textContent = "No picks yet.";
       }
 
+      // Polarizing
       if (polar){
         elPolarQ.textContent = polar.qLabel;
         elPolarNote.textContent = `Entropy: ${polar.h.toFixed(2)} bits • Options: ${polar.options} • Responses: ${polar.denom}`;
@@ -698,9 +763,11 @@
         const right = document.createElement("div");
         right.className = "qmeta";
 
+        // 🟧 pending / 🟩 graded
+        const isGraded = Boolean(q.result);
         const t2 = document.createElement("span");
-        t2.className = "tag " + (q.result ? "good" : "warn");
-        t2.textContent = q.result ? `Result: ${q.result}` : "Result: (pending)";
+        t2.className = "tag " + (isGraded ? "good" : "warn");
+        t2.textContent = isGraded ? `Result: ${q.result}` : "Result: Pending";
         right.appendChild(t2);
 
         head.appendChild(left);
@@ -710,8 +777,10 @@
         body.className = "qbody";
 
         if (q.denom === 0){
+          // if you truly always require answers, this rarely happens
           const empty = document.createElement("div");
-          empty.className = "hint";
+          empty.style.color = "var(--muted)";
+          empty.style.fontSize = "12px";
           empty.textContent = "No picks entered yet for this question.";
           body.appendChild(empty);
         } else {
@@ -728,34 +797,28 @@
           const legend = document.createElement("div");
           legend.className = "legend";
 
-          // NOTE: if you truly want ALL answers always,
-          // you can set MAX_SLICES to a huge number or remove the "Other" grouping.
-          const MAX_SLICES = 9999;
-          const sorted = q.dist.slice();
-          let shown = sorted.slice(0, MAX_SLICES);
-          const rest = sorted.slice(MAX_SLICES);
-
-          if (rest.length){
-            const otherCount = rest.reduce((a,b)=>a+b.count, 0);
-            const otherPct = otherCount / q.denom;
-            shown = shown.concat([{ display:"Other", count: otherCount, pct: otherPct }]);
-          }
+          // show all answers
+          const shown = q.dist.slice();
 
           const slices = shown.map((d, i) => ({
             pct: d.pct,
             color: PIE_COLORS[i % PIE_COLORS.length],
+            key: d.key,   // used to outline winner
             d
           }));
 
+          // winnerKey (lowercased), only if graded
+          const winnerKey = isGraded ? clean(q.result).toLowerCase() : "";
+          canvas.dataset.winner = winnerKey;
           canvas.dataset.slices = JSON.stringify(
-            slices.map(s => ({ pct: s.pct, color: s.color }))
+            slices.map(s => ({ pct: s.pct, color: s.color, key: s.key }))
           );
 
           safeDrawPie(canvas);
 
           slices.forEach(s => {
             const row = document.createElement("div");
-            row.className = "legRow";
+            row.className = "legRow" + (winnerKey && s.key === winnerKey ? " winner" : "");
 
             const sw = document.createElement("div");
             sw.className = "swatch";
@@ -783,7 +846,6 @@
 
         card.appendChild(head);
         card.appendChild(body);
-
         elQuestions.appendChild(card);
       });
     }

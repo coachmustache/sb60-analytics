@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SB60 Results Breakdown</title>
+  <title>SB60 Analytics</title>
 
   <style>
     :root{
@@ -261,13 +261,6 @@
       gap: 8px;
       background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
     }
-
-    a.link{
-      color: var(--goodInk);
-      text-decoration: none;
-      border-bottom: 1px solid rgba(134,239,172,0.35);
-    }
-    a.link:hover{ opacity: .9; }
   </style>
 </head>
 
@@ -275,7 +268,7 @@
   <div class="wrap">
     <div class="header">
       <div>
-        <div class="title">SB60 Results Breakdown</div>
+        <div class="title">SB60 Analytics</div>
         <div class="meta" style="margin-top:6px;">
           <span class="tag">Same data source as Standings</span>
         </div>
@@ -310,15 +303,27 @@
           </div>
 
           <div class="stat">
-            <div class="k">Highest % answer (any question)</div>
-            <div class="v" id="hiPct">—</div>
-            <div class="s" id="hiPctNote">Most “chalk” pick across all questions (non-blank).</div>
+            <div class="k">Chalkiest player</div>
+            <div class="v" id="chalkPlayer">—</div>
+            <div class="s" id="chalkNote">Highest average pick popularity (more “chalk” picks).</div>
           </div>
 
           <div class="stat">
-            <div class="k">Lowest non-zero % answer (any question)</div>
-            <div class="v" id="loPct">—</div>
-            <div class="s" id="loPctNote">Rarest pick that at least one person chose.</div>
+            <div class="k">Contrarian player</div>
+            <div class="v" id="contraPlayer">—</div>
+            <div class="s" id="contraNote">Lowest average pick popularity (more rare picks).</div>
+          </div>
+
+          <div class="stat">
+            <div class="k">Chalkiest answer (any question)</div>
+            <div class="v" id="hiPct">—</div>
+            <div class="s" id="hiPctNote">Most common pick anywhere (non-blank).</div>
+          </div>
+
+          <div class="stat">
+            <div class="k">Rarest pick of the night</div>
+            <div class="v" id="rarestPick">—</div>
+            <div class="s" id="rarestPickNote">Lowest non-zero % pick anywhere + who chose it.</div>
           </div>
         </div>
 
@@ -328,7 +333,7 @@
 
       <div class="footer">
         <div>Click a question to expand. Percentages are based on non-blank picks for that question.</div>
-        <div>Tip: You can add a link back to standings later.</div>
+        <div>Tip: “Graded” does not include tiebreak.</div>
       </div>
     </div>
   </div>
@@ -356,10 +361,17 @@
     const elEntries = document.getElementById("entries");
     const elUnique  = document.getElementById("uniqueEntry");
     const elUniqueNote = document.getElementById("uniqueNote");
+
+    const elChalk = document.getElementById("chalkPlayer");
+    const elChalkNote = document.getElementById("chalkNote");
+    const elContra = document.getElementById("contraPlayer");
+    const elContraNote = document.getElementById("contraNote");
+
     const elHiPct = document.getElementById("hiPct");
     const elHiPctNote = document.getElementById("hiPctNote");
-    const elLoPct = document.getElementById("loPct");
-    const elLoPctNote = document.getElementById("loPctNote");
+
+    const elRarest = document.getElementById("rarestPick");
+    const elRarestNote = document.getElementById("rarestPickNote");
 
     const elQuestions = document.getElementById("questions");
 
@@ -399,7 +411,6 @@
     const clean = v => String(v ?? "").trim();
 
     function fmtPct(x){
-      // x is 0..1
       return (x * 100).toFixed(x*100 >= 10 ? 0 : 1) + "%";
     }
 
@@ -430,13 +441,15 @@
       elGraded.textContent = `Graded: ${gradedCount} / ${gradedTotal}`;
       elGraded.title = "Does not include tiebreak";
 
+      // Per-question freq + denom
+      const perQFreq = [];
+      const perQDenom = [];
+
       // Question breakdown data
       const questions = [];
-      let globalHi = null; // {pct, qIndex, ans, count, denom}
-      let globalLo = null; // lowest non-zero
 
-      // For uniqueness scoring we need per-question frequency maps
-      const perQFreq = [];
+      let globalHi = null; // {pct, qIndex, qLabel, ans, count, denom, key}
+      let globalLo = null; // rarest non-zero {pct,...}
 
       for (let c = PICKS_START_COL; c <= PICKS_END_COL; c++){
         const qIndex = c - PICKS_START_COL; // 0..14
@@ -455,74 +468,90 @@
         }
 
         perQFreq[qIndex] = freq;
+        perQDenom[qIndex] = denom;
 
-        // Build sorted list
         const dist = Array.from(freq.entries()).map(([k, count]) => {
-          // Keep original casing from one of the picks if possible:
-          // (we’ll just title-case display from the key; simplest)
-          const display = k;
           const pct = denom ? count / denom : 0;
-          return { key: k, display, count, pct };
+          return { key: k, display: k, count, pct };
         }).sort((a,b) => b.pct - a.pct || b.count - a.count || a.display.localeCompare(b.display));
 
-        // Per-question extremes (only if denom > 0)
         if (denom > 0){
           const top = dist[0];
           if (top){
             if (!globalHi || top.pct > globalHi.pct){
-              globalHi = { pct: top.pct, qIndex, qLabel, ans: top.display, count: top.count, denom };
+              globalHi = { pct: top.pct, qIndex, qLabel, ans: top.display, count: top.count, denom, key: top.key };
             }
           }
-          // lowest non-zero = last item (since sorted desc)
+
           const low = dist[dist.length - 1];
           if (low && low.pct > 0){
             if (!globalLo || low.pct < globalLo.pct){
-              globalLo = { pct: low.pct, qIndex, qLabel, ans: low.display, count: low.count, denom };
+              globalLo = { pct: low.pct, qIndex, qLabel, ans: low.display, count: low.count, denom, key: low.key };
             }
           }
         }
 
-        // Unique pick for this question = smallest count (if any)
+        // Most unique pick for this question = smallest count
         let mostUnique = null;
         if (dist.length){
-          // Find minimum count (rare pick(s))
           let minCount = Infinity;
           for (const d of dist) minCount = Math.min(minCount, d.count);
-          const rares = dist.filter(d => d.count === minCount)
-                            .sort((a,b) => a.display.localeCompare(b.display));
+          const rares = dist.filter(d => d.count === minCount).sort((a,b) => a.display.localeCompare(b.display));
           mostUnique = rares[0] || null;
         }
 
-        questions.push({
-          qIndex,
-          qLabel,
-          result,
-          denom,
-          dist,
-          mostUnique
-        });
+        questions.push({ qIndex, qLabel, result, denom, dist, mostUnique });
       }
 
-      // Global cards
-      if (globalHi){
-        elHiPct.textContent = `${fmtPct(globalHi.pct)} (${globalHi.count}/${globalHi.denom})`;
-        elHiPctNote.textContent = `${globalHi.qLabel}: “${globalHi.ans}”`;
+      // Chalkiest / Contrarian player
+      // avgPopularity = average of (count/denom) for each answered pick (denom>0)
+      let chalk = null;   // {name, avg, n}
+      let contra = null;  // {name, avg, n}
+
+      for (const p of players){
+        let sum = 0;
+        let n = 0;
+
+        for (let qi = 0; qi < 15; qi++){
+          const pick = clean(p.picks[qi]);
+          const denom = perQDenom[qi] || 0;
+          if (!pick || denom === 0) continue;
+
+          const count = (perQFreq[qi].get(pick.toLowerCase()) || 0);
+          const pop = count / denom;
+          sum += pop;
+          n++;
+        }
+
+        if (n === 0) continue;
+        const avg = sum / n;
+
+        if (!chalk || avg > chalk.avg || (avg === chalk.avg && p.name.localeCompare(chalk.name) < 0)){
+          chalk = { name: p.name, avg, n };
+        }
+        if (!contra || avg < contra.avg || (avg === contra.avg && p.name.localeCompare(contra.name) < 0)){
+          contra = { name: p.name, avg, n };
+        }
+      }
+
+      if (chalk){
+        elChalk.textContent = chalk.name;
+        elChalkNote.textContent = `Avg pick popularity: ${fmtPct(chalk.avg)} (across ${chalk.n} answered picks).`;
       } else {
-        elHiPct.textContent = "—";
-        elHiPctNote.textContent = "No picks yet.";
+        elChalk.textContent = "—";
+        elChalkNote.textContent = "No picks yet.";
       }
 
-      if (globalLo){
-        elLoPct.textContent = `${fmtPct(globalLo.pct)} (${globalLo.count}/${globalLo.denom})`;
-        elLoPctNote.textContent = `${globalLo.qLabel}: “${globalLo.ans}”`;
+      if (contra){
+        elContra.textContent = contra.name;
+        elContraNote.textContent = `Avg pick popularity: ${fmtPct(contra.avg)} (across ${contra.n} answered picks).`;
       } else {
-        elLoPct.textContent = "—";
-        elLoPctNote.textContent = "No picks yet.";
+        elContra.textContent = "—";
+        elContraNote.textContent = "No picks yet.";
       }
 
-      // Most unique entry (overall)
-      // score = sum(1 / frequency of their pick for each question they answered)
-      let best = null; // {name, score}
+      // Most unique entry (overall): sum(1 / frequency)
+      let best = null;
       for (const p of players){
         let score = 0;
         for (let qi = 0; qi < 15; qi++){
@@ -532,7 +561,7 @@
           const count = freq.get(pick.toLowerCase()) || 0;
           if (count > 0) score += (1 / count);
         }
-        if (!best || score > best.score){
+        if (!best || score > best.score || (score === best.score && p.name.localeCompare(best.name) < 0)){
           best = { name: p.name, score };
         }
       }
@@ -543,6 +572,29 @@
       } else {
         elUnique.textContent = "—";
         elUniqueNote.textContent = "No entries yet.";
+      }
+
+      // Chalkiest answer
+      if (globalHi){
+        elHiPct.textContent = `${fmtPct(globalHi.pct)} (${globalHi.count}/${globalHi.denom})`;
+        elHiPctNote.textContent = `${globalHi.qLabel}: “${globalHi.ans}”`;
+      } else {
+        elHiPct.textContent = "—";
+        elHiPctNote.textContent = "No picks yet.";
+      }
+
+      // Rarest pick of the night (lowest non-zero % anywhere) + who picked it
+      if (globalLo){
+        elRarest.textContent = `${fmtPct(globalLo.pct)} (${globalLo.count}/${globalLo.denom})`;
+        const pickers = players
+          .filter(p => clean(p.picks[globalLo.qIndex]).toLowerCase() === globalLo.key)
+          .map(p => p.name)
+          .sort((a,b) => a.localeCompare(b));
+        const who = pickers.length ? pickers.join(", ") : "—";
+        elRarestNote.textContent = `${globalLo.qLabel}: “${globalLo.ans}” • Picked by: ${who}`;
+      } else {
+        elRarest.textContent = "—";
+        elRarestNote.textContent = "No picks yet.";
       }
 
       // Render questions (with filter)
@@ -569,19 +621,16 @@
         const right = document.createElement("div");
         right.className = "qmeta";
 
-        // Denom
         const t1 = document.createElement("span");
         t1.className = "tag";
         t1.textContent = `Responses: ${q.denom}`;
         right.appendChild(t1);
 
-        // Result (if set)
         const t2 = document.createElement("span");
         t2.className = "tag " + (q.result ? "good" : "warn");
         t2.textContent = q.result ? `Result: ${q.result}` : "Result: (pending)";
         right.appendChild(t2);
 
-        // Most unique pick
         const t3 = document.createElement("span");
         t3.className = "tag tb";
         t3.textContent = q.mostUnique
@@ -617,7 +666,6 @@
             barwrap.className = "barwrap";
             const bar = document.createElement("div");
             bar.className = "bar";
-            // width set after append (transition)
             barwrap.appendChild(bar);
             row.appendChild(barwrap);
 
@@ -628,7 +676,6 @@
 
             body.appendChild(row);
 
-            // set width after paint so it animates
             requestAnimationFrame(() => {
               bar.style.width = (d.pct * 100).toFixed(2) + "%";
             });

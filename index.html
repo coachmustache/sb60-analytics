@@ -148,7 +148,6 @@
       text-transform: uppercase;
     }
 
-    /* ✅ Column layout for question cards */
     .qgrid{
       display:grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -173,10 +172,7 @@
       user-select:none;
     }
 
-    .qtitle{
-      font-weight: 900;
-      line-height: 1.25;
-    }
+    .qtitle{ font-weight: 900; line-height: 1.25; }
     .qmeta{
       display:flex;
       gap:8px;
@@ -201,10 +197,7 @@
     .tag.warn{ background: var(--warnBg); color: var(--warnInk); border-color: rgba(249,115,22,0.38); }
     .tag.tb{ background: var(--tbBg); color: var(--tbInk); border-color: rgba(99,102,241,0.45); }
 
-    .qbody{
-      padding: 12px;
-      display:none;
-    }
+    .qbody{ padding: 12px; display:none; }
     .qcard.open .qbody{ display:block; }
 
     .viz{
@@ -229,6 +222,7 @@
     canvas.pie{
       width: 132px;
       height: 132px;
+      display:block;
     }
 
     .legend{
@@ -297,9 +291,6 @@
     <div class="header">
       <div>
         <div class="title">SB60 Analytics</div>
-        <div class="meta" style="margin-top:6px;">
-          <span class="pill">Same data source as Standings</span>
-        </div>
       </div>
       <div class="meta">
         <div id="updated">Updated: —</div>
@@ -319,9 +310,9 @@
       <div class="content">
         <div class="grid">
           <div class="stat">
-            <div class="k">Entries counted</div>
+            <div class="k">Entries Received</div>
             <div class="v" id="entries">—</div>
-            <div class="s">Only rows with a Name in column A (rows 8+).</div>
+            <div class="s">Total submissions currently in the sheet.</div>
           </div>
 
           <div class="stat">
@@ -381,7 +372,7 @@
     const NAME_COL = 0;            // A
     const PICKS_START_COL = 1;     // B
     const PICKS_END_COL = 15;      // P
-    const TIE_GUESS_COL = 16;      // Q (ignored in analytics)
+    const TIE_GUESS_COL = 16;      // Q ignored
 
     const REFRESH_MS = 30000;
 
@@ -449,23 +440,40 @@
       return (x * 100).toFixed(x*100 >= 10 ? 0 : 1) + "%";
     }
 
-    // simple deterministic palette (reused across pies)
     const PIE_COLORS = [
-      "rgba(34,197,94,0.55)",   // green
-      "rgba(99,102,241,0.55)",  // indigo
-      "rgba(249,115,22,0.55)",  // orange
-      "rgba(239,68,68,0.55)",   // red
-      "rgba(14,165,233,0.55)",  // sky
-      "rgba(168,85,247,0.55)",  // purple
-      "rgba(251,191,36,0.55)",  // amber
-      "rgba(148,163,184,0.45)"  // slate
+      "rgba(34,197,94,0.55)",
+      "rgba(99,102,241,0.55)",
+      "rgba(249,115,22,0.55)",
+      "rgba(239,68,68,0.55)",
+      "rgba(14,165,233,0.55)",
+      "rgba(168,85,247,0.55)",
+      "rgba(251,191,36,0.55)",
+      "rgba(148,163,184,0.45)"
     ];
+
+    // ✅ Fix: size canvas based on real rendered size + DPR
+    function prepareCanvas(canvas){
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      const w = Math.max(1, Math.round(rect.width * dpr));
+      const h = Math.max(1, Math.round(rect.height * dpr));
+      if (canvas.width !== w || canvas.height !== h){
+        canvas.width = w;
+        canvas.height = h;
+      }
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // draw in CSS pixels
+      return ctx;
+    }
 
     function drawPie(canvas, slices){
       // slices: [{pct: 0..1, color}]
-      const ctx = canvas.getContext("2d");
-      const w = canvas.width;
-      const h = canvas.height;
+      const ctx = prepareCanvas(canvas);
+
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+
       ctx.clearRect(0,0,w,h);
 
       const cx = w/2, cy = h/2;
@@ -495,7 +503,7 @@
       ctx.fillStyle = "rgba(11,15,25,0.90)";
       ctx.fill();
 
-      // subtle outline
+      // outline
       ctx.beginPath();
       ctx.arc(cx,cy,r,0,Math.PI*2);
       ctx.strokeStyle = "rgba(148,163,184,0.18)";
@@ -504,8 +512,6 @@
     }
 
     function entropy(dist){
-      // dist: array of probabilities that sum to 1
-      // returns Shannon entropy in bits
       let h = 0;
       for (const p of dist){
         if (p <= 0) continue;
@@ -519,7 +525,7 @@
 
       const headers = cachedRows[0] || [];
       const resultsRow = cachedRows[RESULTS_ROW_NUMBER - 1] || [];
-      const dataRows = cachedRows.slice(RESULTS_ROW_NUMBER); // rows 8+
+      const dataRows = cachedRows.slice(RESULTS_ROW_NUMBER);
 
       const players = dataRows
         .filter(r => clean(r[NAME_COL]) !== "")
@@ -536,9 +542,7 @@
       const gradedTotal = (PICKS_END_COL - PICKS_START_COL + 1);
       for (let c = PICKS_START_COL; c <= PICKS_END_COL; c++) if (clean(resultsRow[c]) !== "") gradedCount++;
       elGraded.textContent = `Graded: ${gradedCount} / ${gradedTotal}`;
-      elGraded.title = "Does not include tiebreak";
 
-      // Per-question frequency maps that preserve original casing/punctuation:
       // Map<keyLower, {count, display}>
       const perQFreq = [];
       const perQDenom = [];
@@ -549,7 +553,7 @@
       let polar = null;
 
       for (let c = PICKS_START_COL; c <= PICKS_END_COL; c++){
-        const qIndex = c - PICKS_START_COL; // 0..14
+        const qIndex = c - PICKS_START_COL;
         const qLabel = clean(headers[c]) || `Q${qIndex + 1}`;
         const result = clean(resultsRow[c]);
 
@@ -562,7 +566,7 @@
           denom++;
           const key = raw.toLowerCase();
           const cur = freq.get(key);
-          if (!cur) freq.set(key, { count: 1, display: raw }); // ✅ preserve casing/punctuation
+          if (!cur) freq.set(key, { count: 1, display: raw }); // preserve punctuation/case
           else cur.count++;
         }
 
@@ -574,7 +578,6 @@
           return { key, display: obj.display, count: obj.count, pct };
         }).sort((a,b) => b.pct - a.pct || b.count - a.count || a.display.localeCompare(b.display));
 
-        // Global extremes
         if (denom > 0 && dist.length){
           const top = dist[0];
           if (!globalHi || top.pct > globalHi.pct){
@@ -586,15 +589,13 @@
             globalLo = { pct: low.pct, qIndex, qLabel, ans: low.display, count: low.count, denom, key: low.key };
           }
 
-          // Polarizing = highest entropy (spread out)
-          const probs = dist.map(d => d.pct);
-          const h = entropy(probs);
+          const h = entropy(dist.map(d => d.pct));
           if (!polar || h > polar.h){
             polar = { h, qIndex, qLabel, options: dist.length, denom };
           }
         }
 
-        // Most unique pick for this question (min count)
+        // Most unique pick for this question
         let mostUnique = null;
         if (dist.length){
           let minCount = Infinity;
@@ -607,9 +608,7 @@
       }
 
       // Chalkiest / Contrarian
-      let chalk = null;
-      let contra = null;
-
+      let chalk = null, contra = null;
       for (const p of players){
         let sum = 0, n = 0;
 
@@ -622,7 +621,6 @@
           const rec = perQFreq[qi].get(key);
           const count = rec ? rec.count : 0;
           const pop = count / denom;
-
           sum += pop;
           n++;
         }
@@ -638,48 +636,29 @@
         }
       }
 
-      if (chalk){
-        elChalk.textContent = chalk.name;
-        elChalkNote.textContent = `Avg popularity: ${fmtPct(chalk.avg)} across ${chalk.n} answered picks.`;
-      } else {
-        elChalk.textContent = "—";
-        elChalkNote.textContent = "No picks yet.";
-      }
+      elChalk.textContent = chalk ? chalk.name : "—";
+      elChalkNote.textContent = chalk ? `Avg popularity: ${fmtPct(chalk.avg)} across ${chalk.n} answered picks.` : "No picks yet.";
 
-      if (contra){
-        elContra.textContent = contra.name;
-        elContraNote.textContent = `Avg popularity: ${fmtPct(contra.avg)} across ${contra.n} answered picks.`;
-      } else {
-        elContra.textContent = "—";
-        elContraNote.textContent = "No picks yet.";
-      }
+      elContra.textContent = contra ? contra.name : "—";
+      elContraNote.textContent = contra ? `Avg popularity: ${fmtPct(contra.avg)} across ${contra.n} answered picks.` : "No picks yet.";
 
-      // Most unique entry: Σ(1 / frequency)
+      // Most unique entry
       let best = null;
       for (const p of players){
         let score = 0;
-
         for (let qi = 0; qi < 15; qi++){
           const pickRaw = clean(p.picks[qi]);
           if (!pickRaw) continue;
-
-          const key = pickRaw.toLowerCase();
-          const rec = perQFreq[qi].get(key);
+          const rec = perQFreq[qi].get(pickRaw.toLowerCase());
           if (rec && rec.count > 0) score += (1 / rec.count);
         }
-
         if (!best || score > best.score || (score === best.score && p.name.localeCompare(best.name) < 0)){
           best = { name: p.name, score };
         }
       }
 
-      if (best){
-        elUnique.textContent = best.name;
-        elUniqueNote.textContent = `Uniqueness score: ${best.score.toFixed(2)} (higher = rarer picks).`;
-      } else {
-        elUnique.textContent = "—";
-        elUniqueNote.textContent = "No entries yet.";
-      }
+      elUnique.textContent = best ? best.name : "—";
+      elUniqueNote.textContent = best ? `Uniqueness score: ${best.score.toFixed(2)} (higher = rarer picks).` : "No entries yet.";
 
       // Chalkiest answer
       if (globalHi){
@@ -690,7 +669,7 @@
         elHiPctNote.textContent = "No picks yet.";
       }
 
-      // Rarest pick + who picked it (list all)
+      // Rarest answer + who picked it
       if (globalLo){
         elRarest.textContent = `${fmtPct(globalLo.pct)} (${globalLo.count}/${globalLo.denom})`;
         const pickers = players
@@ -703,7 +682,7 @@
         elRarestNote.textContent = "No picks yet.";
       }
 
-      // Polarizing question
+      // Polarizing
       if (polar){
         elPolarQ.textContent = polar.qLabel;
         elPolarNote.textContent = `Entropy: ${polar.h.toFixed(2)} bits • Options: ${polar.options} • Responses: ${polar.denom}`;
@@ -712,7 +691,7 @@
         elPolarNote.textContent = "No picks yet.";
       }
 
-      // Render question cards (grid + pie)
+      // Render question cards
       const filter = clean(elQ.value).toLowerCase();
       const filteredQs = filter
         ? questions.filter(q => q.qLabel.toLowerCase().includes(filter))
@@ -773,20 +752,16 @@
 
           const canvas = document.createElement("canvas");
           canvas.className = "pie";
-          // set backing size for sharpness
-          canvas.width = 264;
-          canvas.height = 264;
           pieWrap.appendChild(canvas);
 
           const legend = document.createElement("div");
           legend.className = "legend";
 
-          // Limit slices (pie readability):
-          // show top 7, group rest into "Other"
           const MAX_SLICES = 7;
           const sorted = q.dist.slice();
           let shown = sorted.slice(0, MAX_SLICES);
           const rest = sorted.slice(MAX_SLICES);
+
           if (rest.length){
             const otherCount = rest.reduce((a,b)=>a+b.count, 0);
             const otherPct = otherCount / q.denom;
@@ -799,9 +774,9 @@
             d
           }));
 
-          drawPie(canvas, slices);
+          // ✅ draw after layout has happened
+          requestAnimationFrame(() => drawPie(canvas, slices));
 
-          // legend rows
           slices.forEach((s, i) => {
             const row = document.createElement("div");
             row.className = "legRow";
@@ -842,6 +817,23 @@
 
         head.addEventListener("click", () => {
           card.classList.toggle("open");
+          // re-draw pie when opening (helps if it was hidden at first)
+          const canv = card.querySelector("canvas.pie");
+          if (canv){
+            const qd = q; // closure
+            // rebuild slices quickly from current dist
+            const MAX_SLICES = 7;
+            const sorted = qd.dist.slice();
+            let shown = sorted.slice(0, MAX_SLICES);
+            const rest = sorted.slice(MAX_SLICES);
+            if (rest.length){
+              const otherCount = rest.reduce((a,b)=>a+b.count, 0);
+              const otherPct = otherCount / qd.denom;
+              shown = shown.concat([{ key:"__other__", display:"Other", count: otherCount, pct: otherPct }]);
+            }
+            const slices = shown.map((d, i) => ({ pct: d.pct, color: PIE_COLORS[i % PIE_COLORS.length] }));
+            requestAnimationFrame(() => drawPie(canv, slices));
+          }
         });
 
         elQuestions.appendChild(card);

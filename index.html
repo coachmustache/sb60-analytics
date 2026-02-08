@@ -22,9 +22,6 @@
       --badBg:  rgba(239,68,68,0.16);
       --badInk: #fca5a5;
 
-      --waitBg: rgba(148,163,184,0.10);
-      --waitInk:#cbd5e1;
-
       --tbBg: rgba(99,102,241,0.18);
       --tbInk:#c7d2fe;
 
@@ -142,23 +139,6 @@
     .stat .v{ font-size: 18px; font-weight: 900; margin-top: 4px; }
     .stat .s{ color: var(--muted); font-size: 12px; margin-top: 6px; line-height: 1.35; }
 
-    .tag{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,0.18);
-      background: rgba(148,163,184,0.08);
-      color: var(--muted);
-      font-size: 12px;
-      white-space: nowrap;
-    }
-    .tag.good{ background: var(--goodBg); color: var(--goodInk); border-color: rgba(34,197,94,0.28); }
-    .tag.bad{ background: var(--badBg); color: var(--badInk); border-color: rgba(239,68,68,0.28); }
-    .tag.warn{ background: var(--warnBg); color: var(--warnInk); border-color: rgba(249,115,22,0.38); }
-    .tag.tb{ background: var(--tbBg); color: var(--tbInk); border-color: rgba(99,102,241,0.45); }
-
     .section-title{
       margin: 16px 0 8px;
       font-weight: 900;
@@ -168,12 +148,18 @@
       text-transform: uppercase;
     }
 
+    /* ✅ Column layout for question cards */
+    .qgrid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 12px;
+    }
+
     .qcard{
       border: 1px solid rgba(148,163,184,0.18);
       background: rgba(15,23,42,0.55);
       border-radius: 14px;
       overflow: hidden;
-      margin-bottom: 10px;
     }
 
     .qhead{
@@ -199,55 +185,97 @@
       text-align:right;
     }
 
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.18);
+      background: rgba(148,163,184,0.08);
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .tag.good{ background: var(--goodBg); color: var(--goodInk); border-color: rgba(34,197,94,0.28); }
+    .tag.warn{ background: var(--warnBg); color: var(--warnInk); border-color: rgba(249,115,22,0.38); }
+    .tag.tb{ background: var(--tbBg); color: var(--tbInk); border-color: rgba(99,102,241,0.45); }
+
     .qbody{
-      padding: 10px 12px 12px;
+      padding: 12px;
       display:none;
     }
     .qcard.open .qbody{ display:block; }
 
-    .row{
+    .viz{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+    }
+
+    .pieWrap{
+      width: 140px;
+      min-width: 140px;
+      height: 140px;
+      border-radius: 14px;
+      background: rgba(148,163,184,0.06);
+      border: 1px solid rgba(148,163,184,0.14);
       display:flex;
       align-items:center;
-      gap: 10px;
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(148,163,184,0.10);
+      justify-content:center;
+      overflow:hidden;
     }
-    .row:last-child{ border-bottom: none; }
+
+    canvas.pie{
+      width: 132px;
+      height: 132px;
+    }
+
+    .legend{
+      flex: 1;
+      min-width: 0;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .legRow{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      border-bottom: 1px solid rgba(148,163,184,0.10);
+      padding-bottom: 8px;
+    }
+    .legRow:last-child{ border-bottom:none; padding-bottom: 0; }
+
+    .swatch{
+      width: 10px; height: 10px; border-radius: 3px;
+      border: 1px solid rgba(148,163,184,0.30);
+      flex: 0 0 auto;
+    }
 
     .ans{
-      min-width: 200px;
+      flex: 1 1 auto;
+      min-width: 0;
       font-weight: 800;
       overflow:hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    @media (max-width: 600px){
-      .ans{ min-width: 140px; }
-    }
-
-    .barwrap{
-      flex: 1;
-      height: 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,0.18);
-      background: rgba(148,163,184,0.08);
-      overflow:hidden;
-    }
-    .bar{
-      height: 100%;
-      width: 0%;
-      background: rgba(34,197,94,0.45);
-      border-radius: 999px;
-      transition: width 420ms ease;
-    }
 
     .pct{
-      min-width: 90px;
-      text-align:right;
+      flex: 0 0 auto;
       font-variant-numeric: tabular-nums;
       color: var(--muted);
       font-size: 12px;
       white-space: nowrap;
+    }
+
+    .hint{
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
     }
 
     .footer{
@@ -270,7 +298,7 @@
       <div>
         <div class="title">SB60 Analytics</div>
         <div class="meta" style="margin-top:6px;">
-          <span class="tag">Same data source as Standings</span>
+          <span class="pill">Same data source as Standings</span>
         </div>
       </div>
       <div class="meta">
@@ -299,19 +327,19 @@
           <div class="stat">
             <div class="k">Most unique entry</div>
             <div class="v" id="uniqueEntry">—</div>
-            <div class="s" id="uniqueNote">Uniqueness score rewards rare picks (sum of 1 / pick-frequency).</div>
+            <div class="s" id="uniqueNote">Uniqueness score: Σ(1 / pick-frequency).</div>
           </div>
 
           <div class="stat">
             <div class="k">Chalkiest player</div>
             <div class="v" id="chalkPlayer">—</div>
-            <div class="s" id="chalkNote">Highest average pick popularity (more “chalk” picks).</div>
+            <div class="s" id="chalkNote">Highest average pick popularity (count/denom).</div>
           </div>
 
           <div class="stat">
             <div class="k">Contrarian player</div>
             <div class="v" id="contraPlayer">—</div>
-            <div class="s" id="contraNote">Lowest average pick popularity (more rare picks).</div>
+            <div class="s" id="contraNote">Lowest average pick popularity (count/denom).</div>
           </div>
 
           <div class="stat">
@@ -325,14 +353,20 @@
             <div class="v" id="rarestPick">—</div>
             <div class="s" id="rarestPickNote">Lowest non-zero % pick anywhere + who chose it.</div>
           </div>
+
+          <div class="stat" style="grid-column: span 12;">
+            <div class="k">Most polarizing question</div>
+            <div class="v" id="polarQ">—</div>
+            <div class="s" id="polarNote">Most evenly spread distribution (highest entropy).</div>
+          </div>
         </div>
 
         <div class="section-title">Question breakdown</div>
-        <div id="questions"></div>
+        <div class="qgrid" id="questions"></div>
       </div>
 
       <div class="footer">
-        <div>Click a question to expand. Percentages are based on non-blank picks for that question.</div>
+        <div>Click a question to expand. Percentages based on non-blank picks for that question.</div>
         <div>Tip: “Graded” does not include tiebreak.</div>
       </div>
     </div>
@@ -342,14 +376,12 @@
     const SHEET_CSV_URL =
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vQvxWm5EeVD-akvWoB9ArtroL8J1nh8USmTiPdepmbp8JNS3HfQvKtOfSEcgumT4mccp95PJBJBlfix/pub?gid=1947708892&single=true&output=csv";
 
-    // Sheet layout
-    const RESULTS_ROW_NUMBER = 7; // results live in row 7 (1-based)
+    const RESULTS_ROW_NUMBER = 7;
 
-    // Columns (0-based indexes)
     const NAME_COL = 0;            // A
     const PICKS_START_COL = 1;     // B
     const PICKS_END_COL = 15;      // P
-    const TIE_GUESS_COL = 16;      // Q (ignored for graded count + distributions)
+    const TIE_GUESS_COL = 16;      // Q (ignored in analytics)
 
     const REFRESH_MS = 30000;
 
@@ -372,6 +404,9 @@
 
     const elRarest = document.getElementById("rarestPick");
     const elRarestNote = document.getElementById("rarestPickNote");
+
+    const elPolarQ = document.getElementById("polarQ");
+    const elPolarNote = document.getElementById("polarNote");
 
     const elQuestions = document.getElementById("questions");
 
@@ -414,6 +449,71 @@
       return (x * 100).toFixed(x*100 >= 10 ? 0 : 1) + "%";
     }
 
+    // simple deterministic palette (reused across pies)
+    const PIE_COLORS = [
+      "rgba(34,197,94,0.55)",   // green
+      "rgba(99,102,241,0.55)",  // indigo
+      "rgba(249,115,22,0.55)",  // orange
+      "rgba(239,68,68,0.55)",   // red
+      "rgba(14,165,233,0.55)",  // sky
+      "rgba(168,85,247,0.55)",  // purple
+      "rgba(251,191,36,0.55)",  // amber
+      "rgba(148,163,184,0.45)"  // slate
+    ];
+
+    function drawPie(canvas, slices){
+      // slices: [{pct: 0..1, color}]
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0,0,w,h);
+
+      const cx = w/2, cy = h/2;
+      const r = Math.min(w,h) * 0.44;
+
+      // background ring
+      ctx.beginPath();
+      ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.fillStyle = "rgba(148,163,184,0.08)";
+      ctx.fill();
+
+      let start = -Math.PI/2;
+      for (const s of slices){
+        const end = start + (Math.PI*2*s.pct);
+        ctx.beginPath();
+        ctx.moveTo(cx,cy);
+        ctx.arc(cx,cy,r,start,end);
+        ctx.closePath();
+        ctx.fillStyle = s.color;
+        ctx.fill();
+        start = end;
+      }
+
+      // donut hole
+      ctx.beginPath();
+      ctx.arc(cx,cy,r*0.55,0,Math.PI*2);
+      ctx.fillStyle = "rgba(11,15,25,0.90)";
+      ctx.fill();
+
+      // subtle outline
+      ctx.beginPath();
+      ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.strokeStyle = "rgba(148,163,184,0.18)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    function entropy(dist){
+      // dist: array of probabilities that sum to 1
+      // returns Shannon entropy in bits
+      let h = 0;
+      for (const p of dist){
+        if (p <= 0) continue;
+        h += -p * Math.log2(p);
+      }
+      return h;
+    }
+
     function build(){
       if (!cachedRows.length) return;
 
@@ -423,75 +523,78 @@
 
       const players = dataRows
         .filter(r => clean(r[NAME_COL]) !== "")
-        .map(r => ({
-          name: clean(r[NAME_COL]),
-          picks: (() => {
-            const arr = [];
-            for (let c = PICKS_START_COL; c <= PICKS_END_COL; c++) arr.push(clean(r[c]));
-            return arr;
-          })()
-        }));
+        .map(r => {
+          const picks = [];
+          for (let c = PICKS_START_COL; c <= PICKS_END_COL; c++) picks.push(clean(r[c]));
+          return { name: clean(r[NAME_COL]), picks };
+        });
 
       elEntries.textContent = String(players.length);
 
-      // Graded count ONLY B7:P7 (15)
+      // Graded count ONLY B7:P7
       let gradedCount = 0;
       const gradedTotal = (PICKS_END_COL - PICKS_START_COL + 1);
       for (let c = PICKS_START_COL; c <= PICKS_END_COL; c++) if (clean(resultsRow[c]) !== "") gradedCount++;
       elGraded.textContent = `Graded: ${gradedCount} / ${gradedTotal}`;
       elGraded.title = "Does not include tiebreak";
 
-      // Per-question freq + denom
+      // Per-question frequency maps that preserve original casing/punctuation:
+      // Map<keyLower, {count, display}>
       const perQFreq = [];
       const perQDenom = [];
-
-      // Question breakdown data
       const questions = [];
 
-      let globalHi = null; // {pct, qIndex, qLabel, ans, count, denom, key}
-      let globalLo = null; // rarest non-zero {pct,...}
+      let globalHi = null;
+      let globalLo = null;
+      let polar = null;
 
       for (let c = PICKS_START_COL; c <= PICKS_END_COL; c++){
         const qIndex = c - PICKS_START_COL; // 0..14
         const qLabel = clean(headers[c]) || `Q${qIndex + 1}`;
-        const result = clean(resultsRow[c]); // may be blank
+        const result = clean(resultsRow[c]);
 
         const freq = new Map();
         let denom = 0;
 
         for (const p of players){
-          const ans = clean(p.picks[qIndex]);
-          if (!ans) continue;
+          const raw = clean(p.picks[qIndex]);
+          if (!raw) continue;
           denom++;
-          const key = ans.toLowerCase();
-          freq.set(key, (freq.get(key) || 0) + 1);
+          const key = raw.toLowerCase();
+          const cur = freq.get(key);
+          if (!cur) freq.set(key, { count: 1, display: raw }); // ✅ preserve casing/punctuation
+          else cur.count++;
         }
 
         perQFreq[qIndex] = freq;
         perQDenom[qIndex] = denom;
 
-        const dist = Array.from(freq.entries()).map(([k, count]) => {
-          const pct = denom ? count / denom : 0;
-          return { key: k, display: k, count, pct };
+        const dist = Array.from(freq.entries()).map(([key, obj]) => {
+          const pct = denom ? obj.count / denom : 0;
+          return { key, display: obj.display, count: obj.count, pct };
         }).sort((a,b) => b.pct - a.pct || b.count - a.count || a.display.localeCompare(b.display));
 
-        if (denom > 0){
+        // Global extremes
+        if (denom > 0 && dist.length){
           const top = dist[0];
-          if (top){
-            if (!globalHi || top.pct > globalHi.pct){
-              globalHi = { pct: top.pct, qIndex, qLabel, ans: top.display, count: top.count, denom, key: top.key };
-            }
+          if (!globalHi || top.pct > globalHi.pct){
+            globalHi = { pct: top.pct, qIndex, qLabel, ans: top.display, count: top.count, denom, key: top.key };
           }
 
           const low = dist[dist.length - 1];
-          if (low && low.pct > 0){
-            if (!globalLo || low.pct < globalLo.pct){
-              globalLo = { pct: low.pct, qIndex, qLabel, ans: low.display, count: low.count, denom, key: low.key };
-            }
+          if (low.pct > 0 && (!globalLo || low.pct < globalLo.pct)){
+            globalLo = { pct: low.pct, qIndex, qLabel, ans: low.display, count: low.count, denom, key: low.key };
+          }
+
+          // Polarizing = highest entropy (spread out)
+          const probs = dist.map(d => d.pct);
+          const h = entropy(probs);
+          if (!polar || h > polar.h){
+            polar = { h, qIndex, qLabel, options: dist.length, denom };
           }
         }
 
-        // Most unique pick for this question = smallest count
+        // Most unique pick for this question (min count)
         let mostUnique = null;
         if (dist.length){
           let minCount = Infinity;
@@ -503,22 +606,23 @@
         questions.push({ qIndex, qLabel, result, denom, dist, mostUnique });
       }
 
-      // Chalkiest / Contrarian player
-      // avgPopularity = average of (count/denom) for each answered pick (denom>0)
-      let chalk = null;   // {name, avg, n}
-      let contra = null;  // {name, avg, n}
+      // Chalkiest / Contrarian
+      let chalk = null;
+      let contra = null;
 
       for (const p of players){
-        let sum = 0;
-        let n = 0;
+        let sum = 0, n = 0;
 
         for (let qi = 0; qi < 15; qi++){
-          const pick = clean(p.picks[qi]);
+          const pickRaw = clean(p.picks[qi]);
           const denom = perQDenom[qi] || 0;
-          if (!pick || denom === 0) continue;
+          if (!pickRaw || denom === 0) continue;
 
-          const count = (perQFreq[qi].get(pick.toLowerCase()) || 0);
+          const key = pickRaw.toLowerCase();
+          const rec = perQFreq[qi].get(key);
+          const count = rec ? rec.count : 0;
           const pop = count / denom;
+
           sum += pop;
           n++;
         }
@@ -536,7 +640,7 @@
 
       if (chalk){
         elChalk.textContent = chalk.name;
-        elChalkNote.textContent = `Avg pick popularity: ${fmtPct(chalk.avg)} (across ${chalk.n} answered picks).`;
+        elChalkNote.textContent = `Avg popularity: ${fmtPct(chalk.avg)} across ${chalk.n} answered picks.`;
       } else {
         elChalk.textContent = "—";
         elChalkNote.textContent = "No picks yet.";
@@ -544,23 +648,26 @@
 
       if (contra){
         elContra.textContent = contra.name;
-        elContraNote.textContent = `Avg pick popularity: ${fmtPct(contra.avg)} (across ${contra.n} answered picks).`;
+        elContraNote.textContent = `Avg popularity: ${fmtPct(contra.avg)} across ${contra.n} answered picks.`;
       } else {
         elContra.textContent = "—";
         elContraNote.textContent = "No picks yet.";
       }
 
-      // Most unique entry (overall): sum(1 / frequency)
+      // Most unique entry: Σ(1 / frequency)
       let best = null;
       for (const p of players){
         let score = 0;
+
         for (let qi = 0; qi < 15; qi++){
-          const pick = clean(p.picks[qi]);
-          if (!pick) continue;
-          const freq = perQFreq[qi];
-          const count = freq.get(pick.toLowerCase()) || 0;
-          if (count > 0) score += (1 / count);
+          const pickRaw = clean(p.picks[qi]);
+          if (!pickRaw) continue;
+
+          const key = pickRaw.toLowerCase();
+          const rec = perQFreq[qi].get(key);
+          if (rec && rec.count > 0) score += (1 / rec.count);
         }
+
         if (!best || score > best.score || (score === best.score && p.name.localeCompare(best.name) < 0)){
           best = { name: p.name, score };
         }
@@ -583,21 +690,29 @@
         elHiPctNote.textContent = "No picks yet.";
       }
 
-      // Rarest pick of the night (lowest non-zero % anywhere) + who picked it
+      // Rarest pick + who picked it (list all)
       if (globalLo){
         elRarest.textContent = `${fmtPct(globalLo.pct)} (${globalLo.count}/${globalLo.denom})`;
         const pickers = players
           .filter(p => clean(p.picks[globalLo.qIndex]).toLowerCase() === globalLo.key)
           .map(p => p.name)
           .sort((a,b) => a.localeCompare(b));
-        const who = pickers.length ? pickers.join(", ") : "—";
-        elRarestNote.textContent = `${globalLo.qLabel}: “${globalLo.ans}” • Picked by: ${who}`;
+        elRarestNote.textContent = `${globalLo.qLabel}: “${globalLo.ans}” • Picked by: ${pickers.join(", ") || "—"}`;
       } else {
         elRarest.textContent = "—";
         elRarestNote.textContent = "No picks yet.";
       }
 
-      // Render questions (with filter)
+      // Polarizing question
+      if (polar){
+        elPolarQ.textContent = polar.qLabel;
+        elPolarNote.textContent = `Entropy: ${polar.h.toFixed(2)} bits • Options: ${polar.options} • Responses: ${polar.denom}`;
+      } else {
+        elPolarQ.textContent = "—";
+        elPolarNote.textContent = "No picks yet.";
+      }
+
+      // Render question cards (grid + pie)
       const filter = clean(elQ.value).toLowerCase();
       const filteredQs = filter
         ? questions.filter(q => q.qLabel.toLowerCase().includes(filter))
@@ -646,40 +761,80 @@
 
         if (q.denom === 0){
           const empty = document.createElement("div");
-          empty.style.color = "var(--muted)";
-          empty.style.fontSize = "13px";
-          empty.style.padding = "6px 0";
+          empty.className = "hint";
           empty.textContent = "No picks entered yet for this question.";
           body.appendChild(empty);
         } else {
-          q.dist.forEach(d => {
+          const viz = document.createElement("div");
+          viz.className = "viz";
+
+          const pieWrap = document.createElement("div");
+          pieWrap.className = "pieWrap";
+
+          const canvas = document.createElement("canvas");
+          canvas.className = "pie";
+          // set backing size for sharpness
+          canvas.width = 264;
+          canvas.height = 264;
+          pieWrap.appendChild(canvas);
+
+          const legend = document.createElement("div");
+          legend.className = "legend";
+
+          // Limit slices (pie readability):
+          // show top 7, group rest into "Other"
+          const MAX_SLICES = 7;
+          const sorted = q.dist.slice();
+          let shown = sorted.slice(0, MAX_SLICES);
+          const rest = sorted.slice(MAX_SLICES);
+          if (rest.length){
+            const otherCount = rest.reduce((a,b)=>a+b.count, 0);
+            const otherPct = otherCount / q.denom;
+            shown = shown.concat([{ key:"__other__", display:"Other", count: otherCount, pct: otherPct }]);
+          }
+
+          const slices = shown.map((d, i) => ({
+            pct: d.pct,
+            color: PIE_COLORS[i % PIE_COLORS.length],
+            d
+          }));
+
+          drawPie(canvas, slices);
+
+          // legend rows
+          slices.forEach((s, i) => {
             const row = document.createElement("div");
-            row.className = "row";
+            row.className = "legRow";
+
+            const sw = document.createElement("div");
+            sw.className = "swatch";
+            sw.style.background = s.color;
 
             const ans = document.createElement("div");
             ans.className = "ans";
-            ans.title = d.display;
-            ans.textContent = d.display;
-            row.appendChild(ans);
-
-            const barwrap = document.createElement("div");
-            barwrap.className = "barwrap";
-            const bar = document.createElement("div");
-            bar.className = "bar";
-            barwrap.appendChild(bar);
-            row.appendChild(barwrap);
+            ans.title = s.d.display;
+            ans.textContent = s.d.display;
 
             const pct = document.createElement("div");
             pct.className = "pct";
-            pct.textContent = `${fmtPct(d.pct)} • ${d.count}/${q.denom}`;
+            pct.textContent = `${fmtPct(s.d.pct)} • ${s.d.count}/${q.denom}`;
+
+            row.appendChild(sw);
+            row.appendChild(ans);
             row.appendChild(pct);
-
-            body.appendChild(row);
-
-            requestAnimationFrame(() => {
-              bar.style.width = (d.pct * 100).toFixed(2) + "%";
-            });
+            legend.appendChild(row);
           });
+
+          viz.appendChild(pieWrap);
+          viz.appendChild(legend);
+          body.appendChild(viz);
+
+          const hint = document.createElement("div");
+          hint.className = "hint";
+          hint.textContent = rest.length
+            ? `Pie shows top ${MAX_SLICES} answers. Remaining ${rest.length} answers are grouped as “Other”.`
+            : "Pie shows all answers.";
+          body.appendChild(hint);
         }
 
         card.appendChild(head);

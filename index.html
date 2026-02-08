@@ -219,6 +219,7 @@
       overflow:hidden;
     }
 
+    /* Fixed CSS size, we’ll scale the canvas internally for crispness */
     canvas.pie{
       width: 132px;
       height: 132px;
@@ -364,6 +365,16 @@
   </div>
 
   <script>
+    // ===== On-page error reporting (so we don’t get “stuck loading” silently) =====
+    window.addEventListener("error", (e) => {
+      const el = document.getElementById("status");
+      if (el) el.textContent = "JS Error: " + (e.message || "Unknown");
+    });
+    window.addEventListener("unhandledrejection", (e) => {
+      const el = document.getElementById("status");
+      if (el) el.textContent = "Promise Error: " + (e.reason?.message || String(e.reason || "Unknown"));
+    });
+
     const SHEET_CSV_URL =
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vQvxWm5EeVD-akvWoB9ArtroL8J1nh8USmTiPdepmbp8JNS3HfQvKtOfSEcgumT4mccp95PJBJBlfix/pub?gid=1947708892&single=true&output=csv";
 
@@ -372,8 +383,6 @@
     const NAME_COL = 0;            // A
     const PICKS_START_COL = 1;     // B
     const PICKS_END_COL = 15;      // P
-    const TIE_GUESS_COL = 16;      // Q ignored
-
     const REFRESH_MS = 30000;
 
     const elUpdated = document.getElementById("updated");
@@ -451,29 +460,23 @@
       "rgba(148,163,184,0.45)"
     ];
 
-    // ✅ Fix: size canvas based on real rendered size + DPR
-    function prepareCanvas(canvas){
+    // ✅ Simple, reliable canvas sizing: fixed CSS size (132x132) + scale for DPR
+    function setupCanvas(canvas, cssSize = 132){
       const dpr = window.devicePixelRatio || 1;
-      const rect = canvas.getBoundingClientRect();
-      const w = Math.max(1, Math.round(rect.width * dpr));
-      const h = Math.max(1, Math.round(rect.height * dpr));
-      if (canvas.width !== w || canvas.height !== h){
-        canvas.width = w;
-        canvas.height = h;
-      }
+      canvas.style.width = cssSize + "px";
+      canvas.style.height = cssSize + "px";
+      canvas.width = Math.round(cssSize * dpr);
+      canvas.height = Math.round(cssSize * dpr);
+
       const ctx = canvas.getContext("2d");
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // draw in CSS pixels
-      return ctx;
+      return { ctx, size: cssSize };
     }
 
     function drawPie(canvas, slices){
-      // slices: [{pct: 0..1, color}]
-      const ctx = prepareCanvas(canvas);
+      const { ctx, size } = setupCanvas(canvas, 132);
 
-      const rect = canvas.getBoundingClientRect();
-      const w = rect.width;
-      const h = rect.height;
-
+      const w = size, h = size;
       ctx.clearRect(0,0,w,h);
 
       const cx = w/2, cy = h/2;
@@ -566,7 +569,7 @@
           denom++;
           const key = raw.toLowerCase();
           const cur = freq.get(key);
-          if (!cur) freq.set(key, { count: 1, display: raw }); // preserve punctuation/case
+          if (!cur) freq.set(key, { count: 1, display: raw });
           else cur.count++;
         }
 
@@ -595,7 +598,6 @@
           }
         }
 
-        // Most unique pick for this question
         let mostUnique = null;
         if (dist.length){
           let minCount = Infinity;
@@ -669,7 +671,7 @@
         elHiPctNote.textContent = "No picks yet.";
       }
 
-      // Rarest answer + who picked it
+      // Rarest pick + who picked it
       if (globalLo){
         elRarest.textContent = `${fmtPct(globalLo.pct)} (${globalLo.count}/${globalLo.denom})`;
         const pickers = players
@@ -691,7 +693,7 @@
         elPolarNote.textContent = "No picks yet.";
       }
 
-      // Render question cards
+      // Render cards
       const filter = clean(elQ.value).toLowerCase();
       const filteredQs = filter
         ? questions.filter(q => q.qLabel.toLowerCase().includes(filter))
@@ -765,7 +767,7 @@
           if (rest.length){
             const otherCount = rest.reduce((a,b)=>a+b.count, 0);
             const otherPct = otherCount / q.denom;
-            shown = shown.concat([{ key:"__other__", display:"Other", count: otherCount, pct: otherPct }]);
+            shown = shown.concat([{ display:"Other", count: otherCount, pct: otherPct }]);
           }
 
           const slices = shown.map((d, i) => ({
@@ -774,10 +776,10 @@
             d
           }));
 
-          // ✅ draw after layout has happened
-          requestAnimationFrame(() => drawPie(canvas, slices));
+          // draw immediately (now uses fixed sizing)
+          drawPie(canvas, slices);
 
-          slices.forEach((s, i) => {
+          slices.forEach(s => {
             const row = document.createElement("div");
             row.className = "legRow";
 
@@ -817,23 +819,6 @@
 
         head.addEventListener("click", () => {
           card.classList.toggle("open");
-          // re-draw pie when opening (helps if it was hidden at first)
-          const canv = card.querySelector("canvas.pie");
-          if (canv){
-            const qd = q; // closure
-            // rebuild slices quickly from current dist
-            const MAX_SLICES = 7;
-            const sorted = qd.dist.slice();
-            let shown = sorted.slice(0, MAX_SLICES);
-            const rest = sorted.slice(MAX_SLICES);
-            if (rest.length){
-              const otherCount = rest.reduce((a,b)=>a+b.count, 0);
-              const otherPct = otherCount / qd.denom;
-              shown = shown.concat([{ key:"__other__", display:"Other", count: otherCount, pct: otherPct }]);
-            }
-            const slices = shown.map((d, i) => ({ pct: d.pct, color: PIE_COLORS[i % PIE_COLORS.length] }));
-            requestAnimationFrame(() => drawPie(canv, slices));
-          }
         });
 
         elQuestions.appendChild(card);
@@ -858,7 +843,7 @@
         });
         elStatus.textContent = "Live";
       } catch(err){
-        elStatus.textContent = "Couldn’t load";
+        elStatus.textContent = "Couldn’t load: " + (err?.message || String(err));
         console.error(err);
       }
     }

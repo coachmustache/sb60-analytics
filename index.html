@@ -195,9 +195,8 @@
     }
     .tag.good{ background: var(--goodBg); color: var(--goodInk); border-color: rgba(34,197,94,0.28); }
     .tag.warn{ background: var(--warnBg); color: var(--warnInk); border-color: rgba(249,115,22,0.38); }
-    .tag.tb{ background: var(--tbBg); color: var(--tbInk); border-color: rgba(99,102,241,0.45); }
 
-    /* ✅ always visible (no collapsing) */
+    /* ✅ always visible */
     .qbody{ padding: 12px; display:block; }
 
     .viz{
@@ -249,7 +248,6 @@
       margin-top: 4px;
     }
 
-    /* ✅ full text (wrap, no ellipsis) */
     .ans{
       flex: 1 1 auto;
       min-width: 0;
@@ -314,7 +312,6 @@
       </div>
 
       <div class="content">
-        <!-- ✅ TOP STATS GRID (kept) -->
         <div class="grid">
           <div class="stat">
             <div class="k">Entries Received</div>
@@ -717,17 +714,12 @@
         const right = document.createElement("div");
         right.className = "qmeta";
 
-        const t1 = document.createElement("span");
-        t1.className = "tag";
-        t1.textContent = `Responses: ${q.denom}`;
-        right.appendChild(t1);
+        // ✅ removed "Responses: X" bubble entirely
 
         const t2 = document.createElement("span");
         t2.className = "tag " + (q.result ? "good" : "warn");
         t2.textContent = q.result ? `Result: ${q.result}` : "Result: (pending)";
         right.appendChild(t2);
-
-        // ✅ removed "Most unique" bubble entirely
 
         head.appendChild(left);
         head.appendChild(right);
@@ -775,7 +767,6 @@
             slices.map(s => ({ pct: s.pct, color: s.color }))
           );
 
-          // ✅ draw immediately (cards are always visible)
           safeDrawPie(canvas);
 
           slices.forEach(s => {

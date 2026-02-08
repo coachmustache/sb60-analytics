@@ -219,7 +219,6 @@
       overflow:hidden;
     }
 
-    /* Fixed CSS size, we’ll scale the canvas internally for crispness */
     canvas.pie{
       width: 132px;
       height: 132px;
@@ -469,12 +468,15 @@
       canvas.height = Math.round(cssSize * dpr);
 
       const ctx = canvas.getContext("2d");
+      if (!ctx) return { ctx: null, size: cssSize };
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // draw in CSS pixels
       return { ctx, size: cssSize };
     }
 
     function drawPie(canvas, slices){
-      const { ctx, size } = setupCanvas(canvas, 132);
+      const setup = setupCanvas(canvas, 132);
+      if (!setup.ctx) return;
+      const { ctx, size } = setup;
 
       const w = size, h = size;
       ctx.clearRect(0,0,w,h);
@@ -512,6 +514,18 @@
       ctx.strokeStyle = "rgba(148,163,184,0.18)";
       ctx.lineWidth = 2;
       ctx.stroke();
+    }
+
+    // ✅ Draw only when visible (fixes canvases drawn while in display:none)
+    function safeDrawPie(canvas){
+      const raw = canvas.dataset.slices;
+      if (!raw) return;
+
+      let slices;
+      try { slices = JSON.parse(raw); }
+      catch { return; }
+
+      requestAnimationFrame(() => drawPie(canvas, slices));
     }
 
     function entropy(dist){
@@ -776,8 +790,10 @@
             d
           }));
 
-          // draw immediately (now uses fixed sizing)
-          drawPie(canvas, slices);
+          // ✅ Store pie slices; draw only when visible/open
+          canvas.dataset.slices = JSON.stringify(
+            slices.map(s => ({ pct: s.pct, color: s.color }))
+          );
 
           slices.forEach(s => {
             const row = document.createElement("div");
@@ -817,8 +833,15 @@
         card.appendChild(head);
         card.appendChild(body);
 
+        // ✅ draw the pie when opening the card (now visible)
         head.addEventListener("click", () => {
+          const opening = !card.classList.contains("open");
           card.classList.toggle("open");
+
+          if (opening){
+            const canv = card.querySelector("canvas.pie");
+            if (canv) safeDrawPie(canv);
+          }
         });
 
         elQuestions.appendChild(card);
